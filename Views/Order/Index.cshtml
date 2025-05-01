@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Order Management";
+}
+
+<div class="container">
+    <h2>Order Management</h2>
+
+    <!-- Status Filter -->
+    <div class="btn-group mb-3" role="group">
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders()">All Orders</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('New')">New</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Confirmed')">Confirmed</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Preparing')">Preparing</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('OutForDelivery')">Out for Delivery</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Delivered')">Delivered</button>
+    </div>
+
+    <!-- Orders List -->
+    <div id="ordersList">
+        <!-- Orders will be loaded here -->
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        // Initialize SignalR connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .withAutomaticReconnect()
+            .build();
+
+        // Start the connection
+        connection.start()
+            .then(() => {
+                console.log("SignalR Connected");
+                loadOrders(); // Load initial orders
+            })
+            .catch(err => console.error(err));
+
+        // Handle order status updates
+        connection.on("OrderStatusUpdated", (orderId, newStatus) => {
+            loadOrders(); // Reload orders when status changes
+        });
+
+        // Function to load orders
+        function loadOrders(status = null) {
+            let url = '/Order/GetOrders';
+            if (status) {
+                url += `?status=${status}`;
+            }
+
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('ordersList').innerHTML = html;
+                });
+        }
+
+        // Function to update order status
+        function updateOrderStatus(orderId, newStatus) {
+            fetch('/Order/UpdateStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ id: orderId, newStatus: newStatus })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+} 

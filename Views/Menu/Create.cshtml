@@ -1,0 +1,118 @@
+@model FoodOrderingSystem.Models.Dish
+
+@{
+    ViewData["Title"] = "Add Dishes";
+}
+
+<div class="container">
+    <h2>Add Dishes</h2>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-3" id="dishTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">Manual Entry</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="csv-tab" data-bs-toggle="tab" data-bs-target="#csv" type="button" role="tab">Bulk Import (CSV)</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="dishTabsContent">
+        <!-- Manual Entry Tab -->
+        <div class="tab-pane fade show active" id="manual" role="tabpanel">
+            <h3>Add Single Dish</h3>
+            @using (Html.BeginForm("Create", "Menu", FormMethod.Post))
+            {
+                <form asp-action="Create">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Price"></label>
+                        <input asp-for="Price" class="form-control" />
+                        <span asp-validation-for="Price" class="text-danger"></span>image.png
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Category"></label>
+                        <select asp-for="Category" class="form-control" asp-items="@(new SelectList(new[] { "Starters", "Mains", "Desserts", "Beverages" }))">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Description"></label>
+                        <textarea asp-for="Description" class="form-control"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ImageUrl"></label>
+                        <input asp-for="ImageUrl" class="form-control" />
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsAvailable" class="form-check-input" />
+                        <label asp-for="IsAvailable" class="form-check-label">Available</label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsSpecialToday" class="form-check-input" />
+                        <label asp-for="IsSpecialToday" class="form-check-label">Special Today</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Save Dish</button>
+                </form>
+            }
+        </div>
+
+        <!-- CSV Import Tab -->
+        <div class="tab-pane fade" id="csv" role="tabpanel">
+            <h3>Bulk Import Dishes</h3>
+            <div class="alert alert-info">
+                <h5>CSV Format Instructions:</h5>
+                <p>Your CSV file should have the following columns in order:</p>
+                <ul>
+                    <li>Name (required)</li>
+                    <li>Price (required, decimal)</li>
+                    <li>Category (optional: Starters, Mains, Desserts, Beverages)</li>
+                    <li>Description (optional)</li>
+                    <li>ImageUrl (optional)</li>
+                    <li>IsAvailable (optional: true/false)</li>
+                    <li>IsSpecialToday (optional: true/false)</li>
+                </ul>
+                <p>Download a <a asp-controller="Menu" asp-action="DownloadSampleCsv">sample CSV file</a> for reference.</p>
+            </div>
+
+            @using (Html.BeginForm("BulkImport", "Menu", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="form-group mb-3">
+                    <label for="csvFile">Select CSV File:</label>
+                    <input type="file" name="csvFile" id="csvFile" class="form-control" accept=".csv" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Import Dishes</button>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Initialize Bootstrap tabs
+        var tabEl = document.querySelectorAll('button[data-bs-toggle="tab"]')
+        tabEl.forEach(function (tab) {
+            new bootstrap.Tab(tab)
+        })
+    </script>
+}

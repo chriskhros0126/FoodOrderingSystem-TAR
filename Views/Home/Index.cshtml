@@ -1,0 +1,120 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    <div class="text-center">
+        <h1 class="display-4">Welcome to Our Food Ordering System</h1>
+        <p class="lead">Order your favorite dishes with just a few clicks!</p>
+        
+        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+        {
+            <div class="mt-4 mb-4">
+                <a asp-controller="Menu" asp-action="Create" class="btn btn-lg btn-success">
+                    <i class="fas fa-plus-circle"></i> Create New Menu Item
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="admin-controls mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Admin Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <a asp-controller="Menu" asp-action="Create" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-plus-circle"></i> Create Menu Item
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <a asp-controller="Menu" asp-action="Index" class="btn btn-info btn-lg">
+                                        <i class="fas fa-list"></i> Manage Menu
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <a asp-controller="Order" asp-action="Index" class="btn btn-success btn-lg">
+                                        <i class="fas fa-clipboard-list"></i> View Orders
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Featured Dishes Section -->
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Featured Dishes</h2>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="text-center mb-3">
+                        <a asp-controller="Menu" asp-action="Create" class="btn btn-outline-primary">
+                            <i class="fas fa-plus-circle"></i> Add New Dish
+                        </a>
+                    </div>
+                }
+            </div>
+            @foreach (var dish in ViewBag.FeaturedDishes ?? new List<Dish>())
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <img src="@dish.ImageUrl" class="card-img-top" alt="@dish.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@dish.Name</h5>
+                            <p class="card-text">@dish.Description</p>
+                            <p class="card-text"><strong>Price: @dish.Price.ToString("C")</strong></p>
+                            <div class="d-grid gap-2">
+                                <a href="@Url.Action("Create", "Order", new { dishId = dish.Id })" class="btn btn-primary">
+                                    Order Now
+                                </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-controller="Menu" asp-action="Edit" asp-route-id="@dish.Id" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6 text-center">
+                <p class="lead">Please log in to start ordering.</p>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                    Login Now
+                </a>
+                <p class="mt-3">
+                    Don't have an account? 
+                    <a asp-controller="Account" asp-action="Register">Register here</a>
+                </p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+}

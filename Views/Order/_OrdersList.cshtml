@@ -1,0 +1,92 @@
+@model IEnumerable<FoodOrderingSystem.Models.Order>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No orders found.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.Id</td>
+                        <td>@order.CustomerName</td>
+                        <td>
+                            <ul class="list-unstyled">
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <li>@item.Dish.Name x @item.Quantity</li>
+                                }
+                            </ul>
+                        </td>
+                        <td>@order.TotalAmount.ToString("C")</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(order.Status)">
+                                @order.Status
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                @if (order.Status == OrderStatus.New)
+                                {
+                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Confirmed')">
+                                        Confirm
+                                    </button>
+                                }
+                                @if (order.Status == OrderStatus.Confirmed)
+                                {
+                                    <button class="btn btn-sm btn-primary" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Preparing')">
+                                        Start Preparing
+                                    </button>
+                                }
+                                @if (order.Status == OrderStatus.Preparing)
+                                {
+                                    <button class="btn btn-sm btn-info" onclick="updateOrderStatus(@order.Id, '@OrderStatus.OutForDelivery')">
+                                        Out for Delivery
+                                    </button>
+                                }
+                                @if (order.Status == OrderStatus.OutForDelivery)
+                                {
+                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Delivered')">
+                                        Mark as Delivered
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@functions {
+    string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.New => "bg-secondary",
+            OrderStatus.Confirmed => "bg-primary",
+            OrderStatus.Preparing => "bg-warning",
+            OrderStatus.OutForDelivery => "bg-info",
+            OrderStatus.Delivered => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+} 

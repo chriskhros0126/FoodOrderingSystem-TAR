@@ -1,0 +1,81 @@
+@model FoodOrderingSystem.Models.Order
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Order Confirmed!</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading">Thank you for your order!</h4>
+                        <p>Your order has been received and is being processed. Here are your order details:</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Order Information</h5>
+                            <p><strong>Order ID:</strong> @Model.Id</p>
+                            <p><strong>Order Date:</strong> @Model.OrderDate.ToString("g")</p>
+                            <p><strong>Status:</strong> <span class="badge bg-primary">@Model.Status</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Delivery Information</h5>
+                            <p><strong>Name:</strong> @Model.CustomerName</p>
+                            <p><strong>Phone:</strong> @Model.CustomerPhone</p>
+                            <p><strong>Address:</strong> @Model.DeliveryAddress</p>
+                        </div>
+                    </div>
+
+                    <h5>Order Items</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr>
+                                        <td>@item.Dish.Name</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td><strong>@Model.TotalAmount.ToString("C")</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mt-4">
+                            <h5>Special Instructions</h5>
+                            <p>@Model.Notes</p>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary">Return to Menu</a>
+                        <a href="/Order/Details/@Model.Id" class="btn btn-outline-primary">View Order Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

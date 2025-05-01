@@ -1,0 +1,181 @@
+@model FoodOrderingSystem.Models.Order
+@{
+    ViewData["Title"] = "Place Order";
+}
+
+<div class="container">
+    <h2>Place Your Order</h2>
+
+    <div class="row">
+        <!-- Menu Items -->
+        <div class="col-md-8">
+            <div class="row">
+                @foreach (var dish in ViewBag.Dishes)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <img src="@dish.ImageUrl" class="card-img-top" alt="@dish.Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@dish.Name</h5>
+                                <p class="card-text">@dish.Description</p>
+                                <p class="card-text"><strong>Price: @dish.Price.ToString("C")</strong></p>
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity(@dish.Id)">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity_@dish.Id" value="0" min="0">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity(@dish.Id)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <form id="orderForm" asp-action="Create">
+                        <div class="mb-3">
+                            <label asp-for="CustomerName" class="form-label">Name</label>
+                            <input asp-for="CustomerName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="CustomerPhone" class="form-label">Phone</label>
+                            <input asp-for="CustomerPhone" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                            <textarea asp-for="DeliveryAddress" class="form-control" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">Special Instructions</label>
+                            <textarea asp-for="Notes" class="form-control"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Selected Items:</h6>
+                            <div id="orderItems">
+                                <!-- Order items will be displayed here -->
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h5>Total: <span id="totalAmount">$0.00</span></h5>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Place Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let orderItems = {};
+
+        function increaseQuantity(dishId) {
+            const input = document.getElementById(`quantity_${dishId}`);
+            input.value = parseInt(input.value) + 1;
+            updateOrderSummary();
+        }
+
+        function decreaseQuantity(dishId) {
+            const input = document.getElementById(`quantity_${dishId}`);
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                updateOrderSummary();
+            }
+        }
+
+        function updateOrderSummary() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            const totalAmountSpan = document.getElementById('totalAmount');
+            let total = 0;
+            let itemsHtml = '';
+
+            // Get all quantity inputs
+            const quantityInputs = document.querySelectorAll('input[type="number"]');
+            quantityInputs.forEach(input => {
+                const dishId = input.id.split('_')[1];
+                const quantity = parseInt(input.value);
+                
+                if (quantity > 0) {
+                    const dish = @Html.Raw(Json.Serialize(ViewBag.Dishes));
+                    const selectedDish = dish.find(d => d.id == dishId);
+                    
+                    if (selectedDish) {
+                        const itemTotal = selectedDish.price * quantity;
+                        total += itemTotal;
+                        itemsHtml += `
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>${selectedDish.name} x ${quantity}</span>
+                                <span>$${itemTotal.toFixed(2)}</span>
+                            </div>`;
+                    }
+                }
+            });
+
+            orderItemsDiv.innerHTML = itemsHtml || '<p>No items selected</p>';
+            totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Update order summary when page loads
+        document.addEventListener('DOMContentLoaded', updateOrderSummary);
+
+        // Handle form submission
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderItems = [];
+            const quantityInputs = document.querySelectorAll('input[type="number"]');
+            
+            quantityInputs.forEach(input => {
+                const dishId = input.id.split('_')[1];
+                const quantity = parseInt(input.value);
+                
+                if (quantity > 0) {
+                    orderItems.push({
+                        dishId: parseInt(dishId),
+                        quantity: quantity
+                    });
+                }
+            });
+
+            if (orderItems.length === 0) {
+                alert('Please select at least one item');
+                return;
+            }
+
+            const formData = {
+                customerName: document.getElementById('CustomerName').value,
+                customerPhone: document.getElementById('CustomerPhone').value,
+                deliveryAddress: document.getElementById('DeliveryAddress').value,
+                notes: document.getElementById('Notes').value,
+                orderItems: orderItems
+            };
+
+            fetch('/Order/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/Order/Confirmation';
+                } else {
+                    throw new Error('Order submission failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to place order. Please try again.');
+            });
+        });
+    </script>
+} 
