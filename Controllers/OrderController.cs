@@ -6,6 +6,7 @@ using FoodOrderingSystem.Hubs;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -13,11 +14,13 @@ namespace FoodOrderingSystem.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IHubContext<OrderHub> _hubContext;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public OrderController(AppDbContext context, IHubContext<OrderHub> hubContext)
+        public OrderController(AppDbContext context, IHubContext<OrderHub> hubContext, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _hubContext = hubContext;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -40,6 +43,11 @@ namespace FoodOrderingSystem.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (model.OrderItems == null || !model.OrderItems.Any())
+            {
+                return BadRequest("Please select at least one item");
+            }
+
             var order = new Order
             {
                 CustomerName = model.CustomerName,
@@ -51,6 +59,16 @@ namespace FoodOrderingSystem.Controllers
                 OrderItems = new List<OrderItem>()
             };
 
+            // If user is logged in, associate the order with their account
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    order.UserId = user.Id;
+                }
+            }
+
             decimal totalAmount = 0;
 
             foreach (var item in model.OrderItems)
@@ -59,6 +77,11 @@ namespace FoodOrderingSystem.Controllers
                 if (dish == null)
                 {
                     return BadRequest($"Dish with ID {item.DishId} not found");
+                }
+
+                if (item.Quantity <= 0)
+                {
+                    return BadRequest($"Invalid quantity for dish {dish.Name}");
                 }
 
                 var orderItem = new OrderItem
@@ -74,13 +97,20 @@ namespace FoodOrderingSystem.Controllers
 
             order.TotalAmount = totalAmount;
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
 
-            // Notify all connected clients about the new order
-            await _hubContext.Clients.All.SendAsync("NewOrderReceived", order.Id);
+                // Notify all connected clients about the new order
+                await _hubContext.Clients.All.SendAsync("NewOrderReceived", order.Id);
 
-            return Json(new { success = true, orderId = order.Id });
+                return Json(new { success = true, orderId = order.Id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to place order: {ex.Message}");
+            }
         }
 
         public async Task<IActionResult> Confirmation(int id)
@@ -153,7 +183,7 @@ namespace FoodOrderingSystem.Controllers
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
         public string DeliveryAddress { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         public List<OrderItemViewModel> OrderItems { get; set; }
     }
 
