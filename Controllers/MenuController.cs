@@ -201,6 +201,46 @@ namespace FoodOrderingSystem.Controllers
                     ImageUrl = "/images/dishes/Chocolate-Lava-Cake-Recipe.jpg",
                     IsAvailable = true,
                     IsSpecialToday = true
+                },
+                new Dish
+                {
+                    Name = "Gourmet Beef Burger",
+                    Price = 16.99m,
+                    Category = "Mains",
+                    Description = "Premium beef patty with caramelized onions, fresh lettuce, and special sauce on a brioche bun",
+                    ImageUrl = "/images/dishes/burger.jpg",
+                    IsAvailable = true,
+                    IsSpecialToday = true
+                },
+                new Dish
+                {
+                    Name = "Creamy Mushroom Soup",
+                    Price = 7.99m,
+                    Category = "Appetizers",
+                    Description = "Rich and creamy soup with fresh mushrooms, herbs, and a touch of truffle oil",
+                    ImageUrl = "/images/dishes/Mushroom-soup.jpg",
+                    IsAvailable = true,
+                    IsSpecialToday = false
+                },
+                new Dish
+                {
+                    Name = "Pepperoni Pizza",
+                    Price = 18.99m,
+                    Category = "Mains",
+                    Description = "Classic pizza with tomato sauce, mozzarella cheese, and spicy pepperoni",
+                    ImageUrl = "/images/dishes/pizza.jpg",
+                    IsAvailable = true,
+                    IsSpecialToday = false
+                },
+                new Dish
+                {
+                    Name = "Caesar Salad",
+                    Price = 12.99m,
+                    Category = "Appetizers",
+                    Description = "Crisp romaine lettuce, parmesan cheese, croutons, and classic Caesar dressing",
+                    ImageUrl = "/images/dishes/salad.jpg",
+                    IsAvailable = true,
+                    IsSpecialToday = false
                 }
             };
 
