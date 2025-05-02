@@ -2,38 +2,101 @@
 
 @model IEnumerable<FoodOrderingSystem.Models.Dish>
 
-<h2>Menu</h2>
+@{
+    ViewData["Title"] = "Menu Management";
+}
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add New Dish</a>
-</p>
+<div class="container">
+    <h1>Menu Management</h1>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Price (RM)</th>
-            <th>Category</th>
-            <th>Available</th>
-            <th>Special</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var dish in Model)
-    {
-        <tr>
-            <td>@dish.Name</td>
-            <td>@dish.Price.ToString("0.00")</td>
-            <td>@dish.Category</td>
-            <td>@(dish.IsAvailable ? "Yes" : "No")</td>
-            <td>@(dish.IsSpecialToday ? "Yes" : "No")</td>
-            <td>
-                <a asp-action="Details" asp-route-id="@dish.Id" class="btn btn-info btn-sm">View</a>
-                <a asp-action="Edit" asp-route-id="@dish.Id" class="btn btn-warning btn-sm">Edit</a>
-                <a asp-action="Delete" asp-route-id="@dish.Id" class="btn btn-danger btn-sm">Delete</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <div id="alert-container"></div>
+
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Create New Dish</a>
+    </p>
+
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name" style="height: 200px; object-fit: cover;">
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Name</h5>
+                        <p class="card-text">@item.Description</p>
+                        <p class="card-text"><strong>Price: </strong>@item.Price.ToString("C")</p>
+                        <p class="card-text"><strong>Category: </strong>@item.Category</p>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   onchange="toggleAvailability(this, @item.Id)"
+                                   @(item.IsAvailable ? "checked" : "")>
+                            <label class="form-check-label">Available</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" disabled checked="@item.IsSpecialToday">
+                            <label class="form-check-label">Special Today</label>
+                        </div>
+                        <div class="btn-group">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary">Edit</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertContainer.appendChild(alert);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        async function toggleAvailability(checkbox, dishId) {
+            const originalState = checkbox.checked;
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const response = await fetch('/Menu/ToggleAvailability', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ id: dishId })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Failed to update availability');
+                }
+
+                checkbox.checked = result.isAvailable;
+                showAlert('Availability updated successfully!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                checkbox.checked = originalState; // Revert the checkbox
+                showAlert(error.message || 'Failed to update availability');
+            }
+        }
+    </script>
+}

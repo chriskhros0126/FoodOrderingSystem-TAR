@@ -8,8 +8,7 @@ namespace FoodOrderingSystem.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
         [Required]
         public DateTime OrderDate { get; set; } = DateTime.Now;
@@ -20,13 +19,16 @@ namespace FoodOrderingSystem.Models
         [Required]
         public decimal TotalAmount { get; set; }
 
+        [Required]
         public string DeliveryAddress { get; set; }
 
+        [Required]
         public string CustomerName { get; set; }
 
+        [Required]
         public string CustomerPhone { get; set; }
 
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
