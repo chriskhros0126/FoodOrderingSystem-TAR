@@ -19,15 +19,14 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        // Get featured dishes (special today or popular)
-        var featuredDishes = await _context.Dishes
-            .Where(d => d.IsAvailable && (d.IsSpecialToday || d.PopularityScore > 0))
+        // Get all available dishes
+        var dishes = await _context.Dishes
+            .Where(d => d.IsAvailable)
             .OrderByDescending(d => d.IsSpecialToday)
             .ThenByDescending(d => d.PopularityScore)
-            .Take(6)
             .ToListAsync();
 
-        ViewBag.FeaturedDishes = featuredDishes;
+        ViewBag.FeaturedDishes = dishes;
         return View();
     }
 
