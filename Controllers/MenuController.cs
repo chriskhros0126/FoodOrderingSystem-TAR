@@ -37,6 +37,12 @@ namespace FoodOrderingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Ensure the ImageUrl starts with /images/
+                if (!string.IsNullOrEmpty(dish.ImageUrl) && !dish.ImageUrl.StartsWith("/images/"))
+                {
+                    dish.ImageUrl = "/images/dishes/" + Path.GetFileName(dish.ImageUrl);
+                }
+
                 _context.Dishes.Add(dish);
                 _context.SaveChanges();
                 return RedirectToAction("Index");
@@ -67,6 +73,12 @@ namespace FoodOrderingSystem.Controllers
                             continue; // Skip invalid records
                         }
 
+                        // Fix image URL format
+                        if (!string.IsNullOrEmpty(dish.ImageUrl))
+                        {
+                            dish.ImageUrl = "/images/dishes/" + Path.GetFileName(dish.ImageUrl);
+                        }
+
                         _context.Dishes.Add(dish);
                     }
 
@@ -94,6 +106,12 @@ namespace FoodOrderingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Fix image URL format
+                if (!string.IsNullOrEmpty(dish.ImageUrl) && !dish.ImageUrl.StartsWith("/images/"))
+                {
+                    dish.ImageUrl = "/images/dishes/" + Path.GetFileName(dish.ImageUrl);
+                }
+
                 _context.Dishes.Update(dish);
                 _context.SaveChanges();
                 return RedirectToAction("Index");
@@ -136,7 +154,7 @@ namespace FoodOrderingSystem.Controllers
                     Price = 15.99m,
                     Category = "Mains",
                     Description = "Classic Italian pasta dish with eggs, cheese, pancetta, and black pepper",
-                    ImageUrl = "https://example.com/carbonara.jpg",
+                    ImageUrl = "/images/dishes/SpaghettiCarbonara.jpg",
                     IsAvailable = true,
                     IsSpecialToday = false
                 },
@@ -146,7 +164,7 @@ namespace FoodOrderingSystem.Controllers
                     Price = 8.99m,
                     Category = "Desserts",
                     Description = "Warm chocolate cake with a molten center, served with vanilla ice cream",
-                    ImageUrl = "https://example.com/lava-cake.jpg",
+                    ImageUrl = "/images/dishes/Chocolate-Lava-Cake-Recipe.jpg",
                     IsAvailable = true,
                     IsSpecialToday = true
                 }
