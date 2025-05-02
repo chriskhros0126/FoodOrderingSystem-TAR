@@ -1,0 +1,44 @@
+﻿@model dynamic
+
+@{
+    ViewData["Title"] = "Inventory Dashboard";
+}
+
+<div class="text-center mb-4">
+    <h1>Inventory Dashboard</h1>
+    <p class="lead">Overview of your current stock levels</p>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Items</h5>
+                <p class="card-text display-4">@Model.TotalItems</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Low Stock</h5>
+                <p class="card-text display-4">@Model.LowStockItems</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Out of Stock</h5>
+                <p class="card-text display-4">@Model.OutOfStockItems</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a asp-action="Index" class="btn btn-secondary">View Full Inventory</a>
+    <a asp-action="LowStock" class="btn btn-warning">View Low Stock Details</a>
+</div>

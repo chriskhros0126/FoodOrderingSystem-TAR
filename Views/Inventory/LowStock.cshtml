@@ -1,0 +1,43 @@
+﻿@model IEnumerable<FoodOrderingSystem.Models.InventoryItem>
+
+@{
+    ViewData["Title"] = "Low Stock Alerts";
+}
+
+<div class="alert alert-danger">
+    <h2><i class="fas fa-exclamation-triangle"></i> Low Stock Items</h2>
+</div>
+
+<table class="table table-bordered">
+    <thead class="bg-danger text-white">
+        <tr>
+            <th>Item Name</th>
+            <th>Current Stock</th>
+            <th>Minimum Required</th>
+            <th>Difference</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.CurrentStock @item.Unit</td>
+                <td>@item.Threshold @item.Unit</td>
+                <td class="text-danger font-weight-bold">
+                    @((item.CurrentStock - item.Threshold).ToString("0.00")) @item.Unit
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                        Restock
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <a asp-action="Index" class="btn btn-primary">Back to Inventory</a>
+</div>

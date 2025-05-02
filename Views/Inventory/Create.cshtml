@@ -1,0 +1,62 @@
+﻿@model FoodOrderingSystem.Models.InventoryItem
+
+@{
+    ViewData["Title"] = "Add New Inventory Item";
+}
+
+<h1>Add New Item</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Category" class="control-label"></label>
+                <input asp-for="Category" class="form-control" />
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CurrentStock" class="control-label"></label>
+                <input asp-for="CurrentStock" class="form-control" />
+                <span asp-validation-for="CurrentStock" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Unit" class="control-label"></label>
+                <select asp-for="Unit" class="form-control">
+                    <option value="kg">Kilograms</option>
+                    <option value="g">Grams</option>
+                    <option value="L">Liters</option>
+                    <option value="ml">Milliliters</option>
+                    <option value="pieces">Pieces</option>
+                </select>
+                <span asp-validation-for="Unit" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Threshold" class="control-label"></label>
+                <input asp-for="Threshold" class="form-control" />
+                <span asp-validation-for="Threshold" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CostPerUnit" class="control-label"></label>
+                <input asp-for="CostPerUnit" class="form-control" />
+                <span asp-validation-for="CostPerUnit" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>

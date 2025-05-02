@@ -1,31 +1,139 @@
+/* BASE STYLES (existing) */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* ========= INVENTORY MODULE STYLES ========= */
+/* Card styles for inventory views */
+.inventory-card {
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    border: 1px solid #dee2e6;
+}
+
+    .inventory-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+    }
+
+/* Inventory table styles */
+.table-inventory {
+    --bs-table-bg: transparent;
+}
+
+    .table-inventory th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+    }
+
+/* Low stock warning styling */
+.stock-low {
+    background-color: #fff3cd !important;
+    position: relative;
+}
+
+    .stock-low::after {
+        content: "?";
+        margin-left: 0.5rem;
+        color: #dc3545;
+    }
+
+/* Inventory detail list styles */
+.inventory-details dt {
+    font-weight: 500;
+    color: #6c757d;
+    width: 180px;
+    float: left;
+    clear: left;
+    text-align: right;
+    padding-right: 1rem;
+}
+
+.inventory-details dd {
+    margin-left: 200px;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .inventory-details dt {
+        width: 100%;
+        text-align: left;
+        float: none;
+    }
+
+    .inventory-details dd {
+        margin-left: 0;
+        padding-top: 0.25rem;
+    }
+
+    .inventory-card {
+        margin: 1rem 0;
+    }
+}
+
+/* Status badges */
+.inventory-status {
+    font-size: 0.85rem;
+    padding: 0.35em 0.65em;
+}
+
+.status-ok {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-danger {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+/* Form specific styles */
+.inventory-form .form-label {
+    font-weight: 500;
+}
+
+.inventory-form .form-control {
+    margin-bottom: 1rem;
 }

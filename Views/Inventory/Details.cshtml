@@ -1,0 +1,46 @@
+﻿@model FoodOrderingSystem.Models.InventoryItem
+
+@{
+    ViewData["Title"] = "Inventory Item Details";
+}
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Inventory Item Details</h2>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Name)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Name)</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Category)</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Category)</dd>
+
+            <dt class="col-sm-3">Stock Level</dt>
+            <dd class="col-sm-9 @(Model.CurrentStock <= Model.Threshold ? "text-danger fw-bold" : "")">
+                @Html.DisplayFor(model => model.CurrentStock) @Html.DisplayFor(model => model.Unit)
+                @if (Model.CurrentStock <= Model.Threshold)
+                {
+                    <span class="badge bg-danger ms-2">LOW STOCK</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Minimum Threshold</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Threshold) @Html.DisplayFor(model => model.Unit)</dd>
+
+            <dt class="col-sm-3">Cost Per Unit</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.CostPerUnit)</dd>
+
+            <dt class="col-sm-3">Last Updated</dt>
+            <dd class="col-sm-9">@Model.LastUpdated.ToString("g")</dd>
+        </dl>
+    </div>
+    <div class="card-footer">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-list"></i> Back to List
+        </a>
+    </div>
+</div>

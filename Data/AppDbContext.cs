@@ -11,17 +11,20 @@ namespace FoodOrderingSystem.Data
         {
         }
 
+        // Existing DbSets
         public DbSet<Dish> Dishes { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
-        // Add more DbSet<T> for other models like Customers, etc.
+        // Add the new DbSet for Inventory
+        public DbSet<InventoryItem> InventoryItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // Existing configurations
             modelBuilder.Entity<Dish>()
                 .Property(d => d.Price)
                 .HasPrecision(18, 2);
@@ -34,7 +37,7 @@ namespace FoodOrderingSystem.Data
                 .Property(oi => oi.UnitPrice)
                 .HasPrecision(18, 2);
 
-            // Configure relationships
+            // Existing relationships
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
@@ -51,6 +54,11 @@ namespace FoodOrderingSystem.Data
                 .HasOne(au => au.IdentityUser)
                 .WithOne()
                 .HasForeignKey<ApplicationUser>(au => au.Id);
+
+            // Add configuration for InventoryItem if needed
+            modelBuilder.Entity<InventoryItem>()
+                .Property(i => i.CostPerUnit)
+                .HasPrecision(18, 2);
         }
     }
 }
