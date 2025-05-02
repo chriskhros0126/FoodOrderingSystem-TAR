@@ -9,6 +9,7 @@ using System.IO;
 using CsvHelper;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -142,6 +143,39 @@ namespace FoodOrderingSystem.Controllers
         {
             var dish = _context.Dishes.Find(id);
             return View(dish);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleAvailability([FromBody] ToggleAvailabilityRequest request)
+        {
+            try
+            {
+                if (request == null || request.id == 0)
+                {
+                    return BadRequest(new { success = false, message = "Invalid request" });
+                }
+
+                var dish = await _context.Dishes.FindAsync(request.id);
+                if (dish == null)
+                {
+                    return NotFound(new { success = false, message = "Dish not found" });
+                }
+
+                dish.IsAvailable = !dish.IsAvailable;
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, isAvailable = dish.IsAvailable });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Error updating availability: {ex.Message}" });
+            }
+        }
+
+        public class ToggleAvailabilityRequest
+        {
+            public int id { get; set; }
         }
 
         public IActionResult DownloadSampleCsv()
