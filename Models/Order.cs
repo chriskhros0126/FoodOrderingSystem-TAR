@@ -59,6 +59,7 @@ namespace FoodOrderingSystem.Models
         Preparing,
         OutForDelivery,
         Delivered,
+        InTransit,
         Cancelled
     }
 }
