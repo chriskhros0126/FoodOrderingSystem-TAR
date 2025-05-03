@@ -1,27 +1,22 @@
 @model FoodOrderingSystem.Models.Order
 @{
-    ViewData["Title"] = "Order Confirmation";
+    ViewData["Title"] = "Order Details";
 }
 
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3 class="mb-0">Order Confirmed!</h3>
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Order Details</h3>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-success">
-                        <h4 class="alert-heading">Thank you for your order!</h4>
-                        <p>Your order has been received and is being processed. Here are your order details:</p>
-                    </div>
-
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <h5>Order Information</h5>
                             <p><strong>Order ID:</strong> @Model.Id</p>
                             <p><strong>Order Date:</strong> @Model.OrderDate.ToString("g")</p>
-                            <p><strong>Status:</strong> <span class="badge bg-primary">@Model.Status</span></p>
+                            <p><strong>Status:</strong> <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span></p>
                         </div>
                         <div class="col-md-6">
                             <h5>Delivery Information</h5>
@@ -70,16 +65,29 @@
                         </div>
                     }
 
-                    <div class="mt-4 d-flex justify-content-between">
-                        <a href="/" class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left"></i> Return to Menu
-                        </a>
-                        <a href="/Order/Checkout/@Model.Id" class="btn btn-success">
-                            <i class="fas fa-credit-card"></i> Proceed to Payment
+                    <div class="mt-4">
+                        <a href="/Order" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Orders
                         </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+@functions {
+    string GetStatusBadgeClass(FoodOrderingSystem.Models.OrderStatus status)
+    {
+        return status switch
+        {
+            FoodOrderingSystem.Models.OrderStatus.New => "bg-secondary",
+            FoodOrderingSystem.Models.OrderStatus.Confirmed => "bg-primary",
+            FoodOrderingSystem.Models.OrderStatus.Preparing => "bg-warning",
+            FoodOrderingSystem.Models.OrderStatus.OutForDelivery => "bg-info",
+            FoodOrderingSystem.Models.OrderStatus.Delivered => "bg-success",
+            FoodOrderingSystem.Models.OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+} 

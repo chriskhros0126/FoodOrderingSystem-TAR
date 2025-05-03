@@ -144,6 +144,21 @@ namespace FoodOrderingSystem.Controllers
             return PartialView("_OrdersList", orders);
         }
 
+        public async Task<IActionResult> UpdateStatus(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Dish)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus newStatus)
         {
@@ -159,7 +174,11 @@ namespace FoodOrderingSystem.Controllers
             // Notify all connected clients about the status update
             await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", id, newStatus);
 
-            return Ok();
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Ok();
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Details(int id)
@@ -175,6 +194,48 @@ namespace FoodOrderingSystem.Controllers
             }
 
             return View(order);
+        }
+
+        public IActionResult Pending()
+        {
+            return View();
+        }
+
+        public IActionResult Delivered()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> GetPendingOrders(OrderStatus? status = null)
+        {
+            var query = _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Dish)
+                .Where(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled);
+
+            if (status.HasValue)
+            {
+                query = query.Where(o => o.Status == status.Value);
+            }
+
+            var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+            return PartialView("_OrdersList", orders);
+        }
+
+        public async Task<IActionResult> GetDeliveredOrders(DateTime? date = null)
+        {
+            var query = _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Dish)
+                .Where(o => o.Status == OrderStatus.Delivered);
+
+            if (date.HasValue)
+            {
+                query = query.Where(o => o.OrderDate.Date == date.Value.Date);
+            }
+
+            var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
+            return PartialView("_OrdersList", orders);
         }
     }
 

@@ -13,9 +13,9 @@ else
             <thead>
                 <tr>
                     <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Items</th>
-                    <th>Total</th>
+                    <th>Customer Name</th>
+                    <th>Order Date</th>
+                    <th>Total Amount</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -26,46 +26,28 @@ else
                     <tr>
                         <td>@order.Id</td>
                         <td>@order.CustomerName</td>
-                        <td>
-                            <ul class="list-unstyled">
-                                @foreach (var item in order.OrderItems)
-                                {
-                                    <li>@item.Dish.Name x @item.Quantity</li>
-                                }
-                            </ul>
-                        </td>
+                        <td>@order.OrderDate.ToString("g")</td>
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>
-                            <span class="badge @GetStatusBadgeClass(order.Status)">
-                                @order.Status
-                            </span>
+                            <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <select name="newStatus" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="@order.Status" selected>@order.Status</option>
+                                    @foreach (var status in new[] { OrderStatus.New, OrderStatus.Confirmed, OrderStatus.Preparing, OrderStatus.OutForDelivery, OrderStatus.Delivered, OrderStatus.Cancelled })
+                                    {
+                                        if (status != order.Status)
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    }
+                                </select>
+                            </form>
                         </td>
                         <td>
                             <div class="btn-group">
-                                @if (order.Status == OrderStatus.New)
-                                {
-                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Confirmed')">
-                                        Confirm
-                                    </button>
-                                }
-                                @if (order.Status == OrderStatus.Confirmed)
-                                {
-                                    <button class="btn btn-sm btn-primary" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Preparing')">
-                                        Start Preparing
-                                    </button>
-                                }
-                                @if (order.Status == OrderStatus.Preparing)
-                                {
-                                    <button class="btn btn-sm btn-info" onclick="updateOrderStatus(@order.Id, '@OrderStatus.OutForDelivery')">
-                                        Out for Delivery
-                                    </button>
-                                }
-                                @if (order.Status == OrderStatus.OutForDelivery)
-                                {
-                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus(@order.Id, '@OrderStatus.Delivered')">
-                                        Mark as Delivered
-                                    </button>
-                                }
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
                             </div>
                         </td>
                     </tr>

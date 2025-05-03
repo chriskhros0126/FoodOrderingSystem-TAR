@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Delivered Orders";
+}
+
+<div class="container">
+    <h2>Delivered Orders</h2>
+
+    <!-- Date Filter -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="date" id="dateFilter" class="form-control" onchange="loadDeliveredOrders()">
+                <button class="btn btn-outline-secondary" type="button" onclick="loadDeliveredOrders()">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div id="ordersList">
+        <!-- Orders will be loaded here -->
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        // Initialize SignalR connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .withAutomaticReconnect()
+            .build();
+
+        // Start the connection
+        connection.start()
+            .then(() => {
+                console.log("SignalR Connected");
+                loadDeliveredOrders(); // Load initial orders
+            })
+            .catch(err => console.error(err));
+
+        // Handle order status updates
+        connection.on("OrderStatusUpdated", (orderId, newStatus) => {
+            if (newStatus === 'Delivered') {
+                loadDeliveredOrders(); // Reload orders when new delivery occurs
+            }
+        });
+
+        // Function to load delivered orders
+        function loadDeliveredOrders() {
+            const date = document.getElementById('dateFilter').value;
+            let url = '/Order/GetDeliveredOrders';
+            if (date) {
+                url += `?date=${date}`;
+            }
+
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('ordersList').innerHTML = html;
+                });
+        }
+
+        // Set default date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateFilter').value = today;
+        });
+    </script>
+} 

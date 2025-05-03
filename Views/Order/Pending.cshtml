@@ -1,19 +1,17 @@
 @{
-    ViewData["Title"] = "Order Management";
+    ViewData["Title"] = "Pending Orders";
 }
 
 <div class="container">
-    <h2>Order Management</h2>
+    <h2>Pending Orders</h2>
 
     <!-- Status Filter -->
     <div class="btn-group mb-3" role="group">
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders()">All Orders</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('New')">New</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Confirmed')">Confirmed</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Preparing')">Preparing</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('OutForDelivery')">Out for Delivery</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Delivered')">Delivered</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Cancelled')">Cancelled</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadPendingOrders()">All Pending</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadPendingOrders('New')">New</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadPendingOrders('Confirmed')">Confirmed</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadPendingOrders('Preparing')">Preparing</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadPendingOrders('OutForDelivery')">Out for Delivery</button>
     </div>
 
     <!-- Orders List -->
@@ -35,18 +33,18 @@
         connection.start()
             .then(() => {
                 console.log("SignalR Connected");
-                loadOrders(); // Load initial orders
+                loadPendingOrders(); // Load initial orders
             })
             .catch(err => console.error(err));
 
         // Handle order status updates
         connection.on("OrderStatusUpdated", (orderId, newStatus) => {
-            loadOrders(); // Reload orders when status changes
+            loadPendingOrders(); // Reload orders when status changes
         });
 
-        // Function to load orders
-        function loadOrders(status = null) {
-            let url = '/Order/GetOrders';
+        // Function to load pending orders
+        function loadPendingOrders(status = null) {
+            let url = '/Order/GetPendingOrders';
             if (status) {
                 url += `?status=${status}`;
             }
@@ -56,24 +54,6 @@
                 .then(html => {
                     document.getElementById('ordersList').innerHTML = html;
                 });
-        }
-
-        // Function to update order status
-        function updateOrderStatus(orderId, newStatus) {
-            fetch('/Order/UpdateStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify({ id: orderId, newStatus: newStatus })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-            })
-            .catch(error => console.error('Error:', error));
         }
 
         document.addEventListener('DOMContentLoaded', function() {

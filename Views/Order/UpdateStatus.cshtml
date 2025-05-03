@@ -1,0 +1,43 @@
+@model FoodOrderingSystem.Models.Order
+
+@{
+    ViewData["Title"] = "Update Order Status";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Update Order Status</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Current Status</label>
+                            <input type="text" class="form-control" value="@Model.Status" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Status</label>
+                            <select class="form-select" name="newStatus" required>
+                                <option value="">Select New Status</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Preparing">Preparing</option>
+                                <option value="OutForDelivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                            <a asp-action="Index" class="btn btn-secondary">Back to Orders</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

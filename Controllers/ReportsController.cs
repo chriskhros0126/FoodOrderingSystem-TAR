@@ -133,5 +133,57 @@ namespace FoodOrderingSystem.Controllers
 
             return Json(dishOrderCounts);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> SeedDemoData()
+        {
+            // Only seed if there are no orders
+            if (!_context.Orders.Any())
+            {
+                // Add demo dishes
+                var dishes = new List<Dish>
+                {
+                    new Dish { Name = "Spaghetti", Category = "Main", Price = 12.99m, IsAvailable = true, PopularityScore = 80 },
+                    new Dish { Name = "Caesar Salad", Category = "Starter", Price = 6.99m, IsAvailable = true, PopularityScore = 60 },
+                    new Dish { Name = "Cheesecake", Category = "Dessert", Price = 5.99m, IsAvailable = true, PopularityScore = 70 },
+                    new Dish { Name = "Soup", Category = "Starter", Price = 4.99m, IsAvailable = false, PopularityScore = 40 }
+                };
+                _context.Dishes.AddRange(dishes);
+                await _context.SaveChangesAsync();
+
+                // Add demo orders
+                var order1 = new Order
+                {
+                    CustomerName = "Alice",
+                    CustomerPhone = "123456789",
+                    DeliveryAddress = "123 Main St",
+                    OrderDate = DateTime.Today.AddDays(-1),
+                    Status = OrderStatus.Delivered,
+                    TotalAmount = 25.98m,
+                    OrderItems = new List<OrderItem>
+                    {
+                        new OrderItem { DishId = dishes[0].Id, Quantity = 1, UnitPrice = dishes[0].Price },
+                        new OrderItem { DishId = dishes[1].Id, Quantity = 1, UnitPrice = dishes[1].Price }
+                    }
+                };
+                var order2 = new Order
+                {
+                    CustomerName = "Bob",
+                    CustomerPhone = "987654321",
+                    DeliveryAddress = "456 Side St",
+                    OrderDate = DateTime.Today,
+                    Status = OrderStatus.Confirmed,
+                    TotalAmount = 11.98m,
+                    OrderItems = new List<OrderItem>
+                    {
+                        new OrderItem { DishId = dishes[2].Id, Quantity = 2, UnitPrice = dishes[2].Price }
+                    }
+                };
+                _context.Orders.AddRange(order1, order2);
+                await _context.SaveChangesAsync();
+            }
+
+            return Content("Demo data seeded! You can now view charts on the Reports page.");
+        }
     }
 }
