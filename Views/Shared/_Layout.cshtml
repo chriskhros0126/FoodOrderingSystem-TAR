@@ -27,20 +27,83 @@
                         </li>
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index">
-                                    <i class="fas fa-utensils me-1"></i> Menu Management
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog me-1"></i> Admin
                                 </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Menu" asp-action="Index">
+                                            <i class="fas fa-utensils me-1"></i> Menu Management
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Inventory" asp-action="Index">
+                                            <i class="fas fa-warehouse me-1"></i> Inventory
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Reports" asp-action="Index">
+                                            <i class="fas fa-chart-bar me-1"></i> Reports
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Inventory" asp-action="Index">
-                                    <i class="fas fa-warehouse me-1"></i> Inventory
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="deliveryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-motorcycle me-1"></i> Delivery
                                 </a>
+                                <ul class="dropdown-menu" aria-labelledby="deliveryDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Rider" asp-action="Index">
+                                            <i class="fas fa-users me-1"></i> Rider Management
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Rider" asp-action="Performance">
+                                            <i class="fas fa-chart-line me-1"></i> Rider Performance
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Reports" asp-action="Index">
-                                    <i class="fas fa-chart-bar me-1"></i> Reports
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="orderDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-shopping-bag me-1"></i> Orders
                                 </a>
+                                <ul class="dropdown-menu" aria-labelledby="orderDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Order" asp-action="Index">
+                                            <i class="fas fa-list me-1"></i> All Orders
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Order" asp-action="Pending">
+                                            <i class="fas fa-clock me-1"></i> Pending Orders
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Order" asp-action="Delivered">
+                                            <i class="fas fa-check-circle me-1"></i> Delivered Orders
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="reservationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-calendar-alt me-1"></i> Reservations
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="reservationDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TableReservation" asp-action="Index">
+                                            <i class="fas fa-list me-1"></i> All Reservations
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TableReservation" asp-action="Calendar">
+                                            <i class="fas fa-calendar me-1"></i> Calendar View
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         }
                         <li class="nav-item">

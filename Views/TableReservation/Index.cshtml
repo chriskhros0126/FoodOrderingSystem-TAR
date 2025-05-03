@@ -1,0 +1,66 @@
+@model IEnumerable<FoodOrderingSystem.Models.TableReservation>
+
+@{
+    ViewData["Title"] = "Table Reservations";
+}
+
+<div class="container">
+    <h1>Table Reservations</h1>
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary">New Reservation</a>
+        <a asp-action="Calendar" class="btn btn-info">View Calendar</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Table #</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TableNumber</td>
+                        <td>@item.CustomerName</td>
+                        <td>@item.ReservationDate.ToString("d")</td>
+                        <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
+                        <td>@item.NumberOfGuests</td>
+                        <td>
+                            <span class="badge bg-@(item.Status switch {
+                                ReservationStatus.Confirmed => "success",
+                                ReservationStatus.Pending => "warning",
+                                ReservationStatus.Cancelled => "danger",
+                                ReservationStatus.Completed => "info",
+                                _ => "secondary"
+                            })">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
+                                @if (item.Status == ReservationStatus.Pending || item.Status == ReservationStatus.Confirmed)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this reservation?')">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div> 

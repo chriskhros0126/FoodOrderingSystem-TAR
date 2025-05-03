@@ -1,0 +1,94 @@
+@model IEnumerable<FoodOrderingSystem.Models.TableReservation>
+
+@{
+    ViewData["Title"] = "Reservation Calendar";
+    var today = DateTime.Today;
+    var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+    var endOfWeek = startOfWeek.AddDays(6);
+}
+
+<div class="container">
+    <h1>Reservation Calendar</h1>
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary">New Reservation</a>
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            @for (var date = startOfWeek; date <= endOfWeek; date = date.AddDays(1))
+                            {
+                                <th class="text-center @(date.Date == today.Date ? "table-primary" : "")">
+                                    @date.ToString("ddd")<br />
+                                    @date.ToString("MMM d")
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var timeSlots = new[]
+                            {
+                                new TimeSpan(11, 0, 0), // 11:00 AM
+                                new TimeSpan(12, 0, 0), // 12:00 PM
+                                new TimeSpan(13, 0, 0), // 1:00 PM
+                                new TimeSpan(18, 0, 0), // 6:00 PM
+                                new TimeSpan(19, 0, 0), // 7:00 PM
+                                new TimeSpan(20, 0, 0)  // 8:00 PM
+                            };
+                        }
+
+                        @foreach (var timeSlot in timeSlots)
+                        {
+                            <tr>
+                                <td class="align-middle">@timeSlot.ToString(@"hh\:mm tt")</td>
+                                @for (var date = startOfWeek; date <= endOfWeek; date = date.AddDays(1))
+                                {
+                                    var reservations = Model.Where(r => 
+                                        r.ReservationDate.Date == date.Date && 
+                                        r.StartTime <= timeSlot && 
+                                        r.EndTime > timeSlot &&
+                                        r.Status != ReservationStatus.Cancelled);
+
+                                    <td class="@(date.Date == today.Date ? "table-primary" : "")">
+                                        @foreach (var reservation in reservations)
+                                        {
+                                            <div class="reservation-item mb-1 p-1 rounded @(reservation.Status switch {
+                                                ReservationStatus.Confirmed => "bg-success text-white",
+                                                ReservationStatus.Pending => "bg-warning",
+                                                ReservationStatus.Completed => "bg-info text-white",
+                                                _ => "bg-secondary text-white"
+                                            })">
+                                                <small>
+                                                    <strong>Table @reservation.TableNumber</strong><br />
+                                                    @reservation.CustomerName<br />
+                                                    @reservation.NumberOfGuests guests
+                                                </small>
+                                            </div>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .reservation-item {
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+    .reservation-item:hover {
+        opacity: 0.9;
+    }
+</style> 

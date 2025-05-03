@@ -1,0 +1,97 @@
+@model FoodOrderingSystem.Controllers.RiderPerformanceViewModel
+
+@{
+    ViewData["Title"] = "Rider Performance Details";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Performance Details: @Model.Rider.Name</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Performance Metrics -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-subtitle mb-2 text-muted">Today's Deliveries</h6>
+                                    <h3 class="card-title">@Model.TodayDeliveries</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-subtitle mb-2 text-muted">This Week</h6>
+                                    <h3 class="card-title">@Model.WeekDeliveries</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-subtitle mb-2 text-muted">This Month</h6>
+                                    <h3 class="card-title">@Model.MonthDeliveries</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-subtitle mb-2 text-muted">On-Time Rate</h6>
+                                    <h3 class="card-title">@Model.OnTimeDeliveryRate.ToString("F1")%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Deliveries -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model.RecentDeliveries)
+                                {
+                                    <tr>
+                                        <td>@order.Id</td>
+                                        <td>@order.OrderDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                        <td>
+                                            <span class="badge @(order.Status == OrderStatus.Delivered ? "bg-success" : "bg-warning")">
+                                                @order.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

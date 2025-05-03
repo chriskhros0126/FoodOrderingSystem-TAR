@@ -1,0 +1,129 @@
+@model FoodOrderingSystem.Models.TableReservation
+
+@{
+    ViewData["Title"] = "New Reservation";
+}
+
+<div class="container">
+    <h1>New Table Reservation</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="TableNumber" class="control-label">Table Number</label>
+                            <select asp-for="TableNumber" class="form-control">
+                                @for (int i = 1; i <= 20; i++)
+                                {
+                                    <option value="@i">Table @i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="TableNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="NumberOfGuests" class="control-label">Number of Guests</label>
+                            <input asp-for="NumberOfGuests" class="form-control" min="1" max="10" />
+                            <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="ReservationDate" class="control-label">Date</label>
+                            <input asp-for="ReservationDate" class="form-control" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="ReservationDate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="StartTime" class="control-label">Time</label>
+                            <select asp-for="StartTime" class="form-control">
+                                <option value="11:00:00">11:00 AM</option>
+                                <option value="12:00:00">12:00 PM</option>
+                                <option value="13:00:00">1:00 PM</option>
+                                <option value="18:00:00">6:00 PM</option>
+                                <option value="19:00:00">7:00 PM</option>
+                                <option value="20:00:00">8:00 PM</option>
+                            </select>
+                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="CustomerName" class="control-label">Customer Name</label>
+                    <input asp-for="CustomerName" class="form-control" />
+                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="CustomerPhone" class="control-label">Phone Number</label>
+                            <input asp-for="CustomerPhone" class="form-control" />
+                            <span asp-validation-for="CustomerPhone" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="CustomerEmail" class="control-label">Email</label>
+                            <input asp-for="CustomerEmail" class="form-control" type="email" />
+                            <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="SpecialRequests" class="control-label">Special Requests</label>
+                    <textarea asp-for="SpecialRequests" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="SpecialRequests" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Create Reservation" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Reservation Guidelines</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">✓ Maximum 10 guests per table</li>
+                        <li class="mb-2">✓ Reservations available up to 30 days in advance</li>
+                        <li class="mb-2">✓ 2-hour dining time limit</li>
+                        <li class="mb-2">✓ Please arrive 15 minutes before your reservation</li>
+                        <li class="mb-2">✓ Cancellations must be made 24 hours in advance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Set default end time (2 hours after start time)
+        document.getElementById('StartTime').addEventListener('change', function() {
+            var startTime = this.value;
+            var endTime = new Date('1970-01-01T' + startTime);
+            endTime.setHours(endTime.getHours() + 2);
+            document.getElementById('EndTime').value = endTime.toTimeString().slice(0, 8);
+        });
+    </script>
+} 

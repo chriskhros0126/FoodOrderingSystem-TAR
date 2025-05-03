@@ -16,6 +16,8 @@ namespace FoodOrderingSystem.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Rider> Riders { get; set; }
+    public DbSet<TableReservation> TableReservations { get; set; }
 
         // Add the new DbSet for Inventory
         public DbSet<InventoryItem> InventoryItems { get; set; }

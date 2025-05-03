@@ -1,0 +1,117 @@
+@model FoodOrderingSystem.Models.Rider
+
+@{
+    ViewData["Title"] = "Rider Performance";
+}
+
+<div class="container">
+    <h1>Rider Performance Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Rider Information</h5>
+                    <dl class="row">
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">@Model.Name</dd>
+
+                        <dt class="col-sm-4">Vehicle Type</dt>
+                        <dd class="col-sm-8">@Model.VehicleType</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(Model.IsAvailable ? "bg-success" : "bg-danger")">
+                                @(Model.IsAvailable ? "Available" : "Busy")
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Performance Metrics</h5>
+                    <dl class="row">
+                        <dt class="col-sm-4">Total Deliveries</dt>
+                        <dd class="col-sm-8">@Model.TotalDeliveries</dd>
+
+                        <dt class="col-sm-4">Rating</dt>
+                        <dd class="col-sm-8">
+                            <div class="d-flex align-items-center">
+                                <div class="text-warning">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Floor(Model.Rating))
+                                        {
+                                            <i class="fas fa-star"></i>
+                                        }
+                                        else if (i - 0.5 <= Model.Rating)
+                                        {
+                                            <i class="fas fa-star-half-alt"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star"></i>
+                                        }
+                                    }
+                                </div>
+                                <span class="ms-2">@Model.Rating.ToString("F1")</span>
+                            </div>
+                        </dd>
+
+                        <dt class="col-sm-4">Last Active</dt>
+                        <dd class="col-sm-8">@Model.LastActive.ToString("g")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Deliveries</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate).Take(10))
+                                {
+                                    <tr>
+                                        <td>@order.Id</td>
+                                        <td>@order.CustomerName</td>
+                                        <td>@order.OrderDate.ToString("g")</td>
+                                        <td>
+                                            <span class="badge bg-@(order.Status == OrderStatus.Delivered ? "success" : "primary")">
+                                                @order.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+} 
