@@ -99,4 +99,43 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        // Example data for the chart
+        const ctx = document.getElementById('ordersChart').getContext('2d');
+        const ordersChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['January', 'February', 'March', 'April'],
+                datasets: [{
+                    label: 'Orders',
+                    data: [120, 98, 150, 170],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        precision: 0
+                    }
+                }
+            }
+        });
+
+        // Export as PDF
+        function exportPDF() {
+            var element = document.getElementById('report-content');
+            html2pdf().from(element).set({
+                margin: 0.5,
+                filename: 'OrderReport.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'landscape', unit: 'in', format: 'letter', compressPDF: true }
+            }).save();
+        }
+    </script>
 }
