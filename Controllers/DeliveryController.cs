@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -63,8 +65,32 @@ namespace FoodOrderingSystem.Controllers
 
         // POST: Delivery/AssignRider
         [HttpPost]
-        public async Task<IActionResult> AssignRider(AssignRiderViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignRider([Bind("OrderId,RiderId,Notes")] AssignRiderViewModel model)
         {
+            // Always load the orders and riders to repopulate the lists
+            var pendingOrders = await _context.Orders
+                .Where(o => (o.Status == OrderStatus.Preparing || o.Status == OrderStatus.OutForDelivery) 
+                       && !_context.Deliveries.Any(d => d.OrderId == o.Id))
+                .ToListAsync();
+
+            var activeRiders = await _context.Riders
+                .Where(r => r.IsAvailable)
+                .ToListAsync();
+
+            // Always set these properties to avoid validation errors
+            model.Orders = pendingOrders;
+            model.Riders = activeRiders;
+            model.AvailableOrdersSelectList = new SelectList(pendingOrders, "Id", "Id");
+            model.AvailableRidersSelectList = new SelectList(activeRiders, "Id", "Name");
+            
+            // Check if OrderId and RiderId are valid (non-zero values)
+            if (model.OrderId <= 0 || model.RiderId <= 0)
+            {
+                ModelState.AddModelError("", "Please select both an order and a rider.");
+                return View(model);
+            }
+
             if (ModelState.IsValid)
             {
                 var order = await _context.Orders.FindAsync(model.OrderId);
@@ -118,21 +144,7 @@ namespace FoodOrderingSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // If we got this far, something failed, redisplay form
-            var ordersToAssign = await _context.Orders
-                .Where(o => (o.Status == OrderStatus.Preparing || o.Status == OrderStatus.OutForDelivery) 
-                       && !_context.Deliveries.Any(d => d.OrderId == o.Id))
-                .ToListAsync();
-
-            var availableRiders = await _context.Riders
-                .Where(r => r.IsAvailable)
-                .ToListAsync();
-
-            model.Orders = ordersToAssign;
-            model.Riders = availableRiders;
-            model.AvailableOrdersSelectList = new SelectList(ordersToAssign, "Id", "Id");
-            model.AvailableRidersSelectList = new SelectList(availableRiders, "Id", "Name");
-
+            // If we got this far, something failed, but we've already populated the model
             return View(model);
         }
 
@@ -264,14 +276,21 @@ namespace FoodOrderingSystem.Controllers
 
     public class AssignRiderViewModel
     {
+        [Required(ErrorMessage = "Please select an order")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select an order")]
         public int OrderId { get; set; }
+        
+        [Required(ErrorMessage = "Please select a rider")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a rider")]
         public int RiderId { get; set; }
+        
         public string? Notes { get; set; }
 
-        // For display purposes
-        public IEnumerable<Order> Orders { get; set; }
-        public IEnumerable<Rider> Riders { get; set; }
-        public SelectList AvailableOrdersSelectList { get; set; }
-        public SelectList AvailableRidersSelectList { get; set; }
+        // These properties are only for display and shouldn't be validated
+        // No validation attributes needed since we're manually populating these
+        public IEnumerable<Order> Orders { get; set; } = new List<Order>();
+        public IEnumerable<Rider> Riders { get; set; } = new List<Rider>();
+        public SelectList AvailableOrdersSelectList { get; set; } = new SelectList(Enumerable.Empty<Order>());
+        public SelectList AvailableRidersSelectList { get; set; } = new SelectList(Enumerable.Empty<Rider>());
     }
 }

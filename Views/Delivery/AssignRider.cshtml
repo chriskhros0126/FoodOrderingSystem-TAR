@@ -37,11 +37,12 @@
                     </div>
                     <div class="card-body">
                         <form asp-action="AssignRider" method="post">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            @Html.AntiForgeryToken()
+                            <div asp-validation-summary="All" class="text-danger"></div>
                             
                             <div class="mb-3">
                                 <label asp-for="OrderId" class="form-label">Order</label>
-                                <select asp-for="OrderId" class="form-select" id="orderSelect">
+                                <select asp-for="OrderId" class="form-select" id="orderSelect" required>
                                     <option value="">-- Select Order --</option>
                                     @foreach (var order in Model.Orders)
                                     {
@@ -56,8 +57,12 @@
                             
                             <div class="mb-3">
                                 <label asp-for="RiderId" class="form-label">Rider</label>
-                                <select asp-for="RiderId" class="form-select" asp-items="Model.AvailableRidersSelectList">
+                                <select asp-for="RiderId" class="form-select" required>
                                     <option value="">-- Select Rider --</option>
+                                    @foreach (var rider in Model.Riders)
+                                    {
+                                        <option value="@rider.Id">@rider.Name</option>
+                                    }
                                 </select>
                                 <span asp-validation-for="RiderId" class="text-danger"></span>
                             </div>
@@ -156,6 +161,30 @@
                 $('html, body').animate({
                     scrollTop: $("#orderSelect").offset().top - 100
                 }, 500);
+            });
+
+            // Enhanced form validation
+            $('form').on('submit', function(e) {
+                var orderId = $('#orderSelect').val();
+                var riderId = $('select[name="RiderId"]').val();
+                var isValid = true;
+                
+                if (!orderId || orderId === '') {
+                    isValid = false;
+                    $('span[data-valmsg-for="OrderId"]').text('Please select an order.');
+                }
+                
+                if (!riderId || riderId === '') {
+                    isValid = false;
+                    $('span[data-valmsg-for="RiderId"]').text('Please select a rider.');
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                return true;
             });
 
             function loadOrderDetails(orderId) {

@@ -145,6 +145,17 @@ namespace FoodOrderingSystem.Controllers
             return View(rider);
         }
 
+        // GET: Rider/PerformanceIndex
+        public async Task<IActionResult> PerformanceIndex()
+        {
+            var riders = await _context.Riders
+                .Include(r => r.Orders)
+                .OrderByDescending(r => r.TotalDeliveries)
+                .ToListAsync();
+                
+            return View(riders);
+        }
+
         // GET: Rider/Performance/5
         public async Task<IActionResult> Performance(int? id)
         {

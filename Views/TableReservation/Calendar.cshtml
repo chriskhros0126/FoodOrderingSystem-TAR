@@ -5,6 +5,15 @@
     var today = DateTime.Today;
     var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
     var endOfWeek = startOfWeek.AddDays(6);
+    
+    // Helper function to convert TimeSpan to readable time format
+    string GetReadableTime(TimeSpan time)
+    {
+        int hour = time.Hours;
+        string period = hour >= 12 ? "PM" : "AM";
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return $"{displayHour}:{time.Minutes.ToString("00")} {period}";
+    }
 }
 
 <div class="container">
@@ -14,6 +23,20 @@
         <a asp-action="Create" class="btn btn-primary">New Reservation</a>
         <a asp-action="Index" class="btn btn-secondary">Back to List</a>
     </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No reservations found for the selected period. 
+            <a asp-action="Create" class="alert-link">Create a new reservation</a>.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle me-2"></i>Showing @Model.Count() reservations from @startOfWeek.ToString("MMM dd") to @endOfWeek.ToString("MMM dd").
+        </div>
+    }
 
     <div class="card">
         <div class="card-body">
@@ -38,9 +61,14 @@
                                 new TimeSpan(11, 0, 0), // 11:00 AM
                                 new TimeSpan(12, 0, 0), // 12:00 PM
                                 new TimeSpan(13, 0, 0), // 1:00 PM
+                                new TimeSpan(14, 0, 0), // 2:00 PM
+                                new TimeSpan(15, 0, 0), // 3:00 PM
+                                new TimeSpan(16, 0, 0), // 4:00 PM
+                                new TimeSpan(17, 0, 0), // 5:00 PM
                                 new TimeSpan(18, 0, 0), // 6:00 PM
                                 new TimeSpan(19, 0, 0), // 7:00 PM
-                                new TimeSpan(20, 0, 0)  // 8:00 PM
+                                new TimeSpan(20, 0, 0), // 8:00 PM
+                                new TimeSpan(21, 0, 0)  // 9:00 PM
                             };
                         }
 
@@ -50,26 +78,38 @@
                                 <td class="align-middle">@DateTime.Today.Add(timeSlot).ToString("h:mm tt")</td>
                                 @for (var date = startOfWeek; date <= endOfWeek; date = date.AddDays(1))
                                 {
+                                    var dateTimeSlot = date.Date.Add(timeSlot);
                                     var reservations = Model.Where(r => 
                                         r.ReservationDate.Date == date.Date && 
                                         r.StartTime <= timeSlot && 
                                         r.EndTime > timeSlot &&
-                                        r.Status != ReservationStatus.Cancelled);
+                                        r.Status != ReservationStatus.Cancelled)
+                                        .ToList();
 
                                     <td class="@(date.Date == today.Date ? "table-primary" : "")">
-                                        @foreach (var reservation in reservations)
+                                        @if (reservations.Any())
                                         {
-                                            <div class="reservation-item mb-1 p-1 rounded @(reservation.Status switch {
-                                                ReservationStatus.Confirmed => "bg-success text-white",
-                                                ReservationStatus.Pending => "bg-warning",
-                                                ReservationStatus.Completed => "bg-info text-white",
-                                                _ => "bg-secondary text-white"
-                                            })">
-                                                <small>
-                                                    <strong>Table @reservation.TableNumber</strong><br />
-                                                    @reservation.CustomerName<br />
-                                                    @reservation.NumberOfGuests guests
-                                                </small>
+                                            foreach (var reservation in reservations)
+                                            {
+                                                <div class="reservation-item mb-1 p-1 rounded @(reservation.Status switch {
+                                                    ReservationStatus.Confirmed => "bg-success text-white",
+                                                    ReservationStatus.Pending => "bg-warning",
+                                                    ReservationStatus.Completed => "bg-info text-white",
+                                                    _ => "bg-secondary text-white"
+                                                })">
+                                                    <small>
+                                                        <strong>Table @reservation.TableNumber</strong><br />
+                                                        @reservation.CustomerName<br />
+                                                        @reservation.NumberOfGuests guests<br />
+                                                        @GetReadableTime(reservation.StartTime) - @GetReadableTime(reservation.EndTime)
+                                                    </small>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center text-muted">
+                                                <small>-</small>
                                             </div>
                                         }
                                     </td>

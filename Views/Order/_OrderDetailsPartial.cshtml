@@ -1,0 +1,40 @@
+@model FoodOrderingSystem.Models.Order
+
+<div class="order-details">
+    <div class="alert alert-info mb-3">
+        <strong>Order #@Model.Id</strong> - @Model.Status
+    </div>
+    
+    <div class="mb-3">
+        <h6>Customer Information</h6>
+        <p class="mb-1"><strong>Name:</strong> @Model.CustomerName</p>
+        <p class="mb-1"><strong>Phone:</strong> @Model.CustomerPhone</p>
+        <p><strong>Address:</strong> @Model.DeliveryAddress</p>
+    </div>
+    
+    <div class="mb-3">
+        <h6>Order Information</h6>
+        <p class="mb-1"><strong>Date:</strong> @Model.OrderDate.ToString("g")</p>
+        <p class="mb-1"><strong>Total:</strong> @Model.TotalAmount.ToString("C")</p>
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <p><strong>Notes:</strong> @Model.Notes</p>
+        }
+    </div>
+    
+    <div>
+        <h6>Order Items</h6>
+        <ul class="list-group">
+            @foreach (var item in Model.OrderItems)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        @item.Dish.Name
+                        <span class="text-muted">x @item.Quantity</span>
+                    </div>
+                    <span>@((item.UnitPrice * item.Quantity).ToString("C"))</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div> 

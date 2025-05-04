@@ -51,6 +51,12 @@ namespace FoodOrderingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Ensure EndTime is at least 1 hour after StartTime
+                if (reservation.EndTime <= reservation.StartTime)
+                {
+                    reservation.EndTime = reservation.StartTime.Add(TimeSpan.FromHours(2));
+                }
+
                 // Check if table is available
                 var isAvailable = await IsTableAvailable(reservation);
                 if (!isAvailable)
@@ -59,8 +65,13 @@ namespace FoodOrderingSystem.Controllers
                     return View(reservation);
                 }
 
+                // Set the created time and default status
+                reservation.CreatedAt = DateTime.UtcNow;
+                reservation.Status = ReservationStatus.Confirmed;
+
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Reservation created successfully!";
                 return RedirectToAction(nameof(Index));
             }
             return View(reservation);

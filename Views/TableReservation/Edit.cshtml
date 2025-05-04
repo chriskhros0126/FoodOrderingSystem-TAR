@@ -1,16 +1,18 @@
 @model FoodOrderingSystem.Models.TableReservation
 
 @{
-    ViewData["Title"] = "New Reservation";
+    ViewData["Title"] = "Edit Reservation";
 }
 
 <div class="container">
-    <h1>New Table Reservation</h1>
+    <h1>Edit Reservation</h1>
 
     <div class="row">
         <div class="col-md-8">
-            <form asp-action="Create">
+            <form asp-action="Edit">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CreatedAt" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -104,8 +106,19 @@
                     <span asp-validation-for="SpecialRequests" class="text-danger"></span>
                 </div>
 
+                <div class="form-group mb-3">
+                    <label asp-for="Status" class="control-label">Status</label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="@ReservationStatus.Pending">Pending</option>
+                        <option value="@ReservationStatus.Confirmed">Confirmed</option>
+                        <option value="@ReservationStatus.Cancelled">Cancelled</option>
+                        <option value="@ReservationStatus.Completed">Completed</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
                 <div class="form-group">
-                    <input type="submit" value="Create Reservation" class="btn btn-primary" />
+                    <input type="submit" value="Save Changes" class="btn btn-primary" />
                     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
                 </div>
             </form>

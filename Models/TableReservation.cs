@@ -35,7 +35,8 @@ namespace FoodOrderingSystem.Models
         [StringLength(100)]
         public string CustomerEmail { get; set; }
 
-        public string SpecialRequests { get; set; }
+        [StringLength(500)]
+        public string? SpecialRequests { get; set; }
 
         public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
 

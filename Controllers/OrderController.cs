@@ -181,7 +181,7 @@ namespace FoodOrderingSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, bool partial = false)
         {
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
@@ -191,6 +191,11 @@ namespace FoodOrderingSystem.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            if (partial)
+            {
+                return PartialView("_OrderDetailsPartial", order);
             }
 
             return View(order);

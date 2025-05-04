@@ -1,0 +1,144 @@
+@model IEnumerable<FoodOrderingSystem.Models.Rider>
+
+@{
+    ViewData["Title"] = "Rider Performance Overview";
+}
+
+<div class="container">
+    <h1 class="mb-4">Rider Performance Overview</h1>
+    
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Vehicle Type</th>
+                                    <th>Status</th>
+                                    <th>Total Deliveries</th>
+                                    <th>Rating</th>
+                                    <th>Last Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var rider in Model)
+                                {
+                                    <tr>
+                                        <td>@rider.Name</td>
+                                        <td>@rider.VehicleType</td>
+                                        <td>
+                                            <span class="badge @(rider.IsAvailable ? "bg-success" : "bg-danger")">
+                                                @(rider.IsAvailable ? "Available" : "Busy")
+                                            </span>
+                                        </td>
+                                        <td>@rider.TotalDeliveries</td>
+                                        <td>
+                                            <div class="text-warning">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Floor(rider.Rating))
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else if (i - 0.5 <= rider.Rating)
+                                                    {
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                                <span class="text-dark ms-1">(@rider.Rating.ToString("F1"))</span>
+                                            </div>
+                                        </td>
+                                        <td>@rider.LastActive.ToString("g")</td>
+                                        <td>
+                                            <a asp-action="Performance" asp-route-id="@rider.Id" class="btn btn-info btn-sm">
+                                                <i class="fas fa-chart-bar me-1"></i>Details
+                                            </a>
+                                            <a asp-controller="Delivery" asp-action="RiderDeliveries" asp-route-id="@rider.Id" class="btn btn-success btn-sm">
+                                                <i class="fas fa-motorcycle me-1"></i>Deliveries
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top Performers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        @foreach (var rider in Model.OrderByDescending(r => r.TotalDeliveries).Take(5))
+                        {
+                            <a href="@Url.Action("Performance", new { id = rider.Id })" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@rider.Name</strong>
+                                    <small class="d-block text-muted">@rider.VehicleType</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary rounded-pill">@rider.TotalDeliveries Deliveries</span>
+                                    <small class="d-block">Rating: @rider.Rating.ToString("F1")</small>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Availability</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="card-title text-success">@Model.Count(r => r.IsAvailable)</h3>
+                                    <p class="card-text">Available Riders</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h3 class="card-title text-danger">@Model.Count(r => !r.IsAvailable)</h3>
+                                    <p class="card-text">Busy Riders</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Rider List
+        </a>
+        <a asp-controller="Rider" asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i>Add New Rider
+        </a>
+    </div>
+</div> 
