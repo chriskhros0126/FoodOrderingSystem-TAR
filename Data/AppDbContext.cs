@@ -17,7 +17,8 @@ namespace FoodOrderingSystem.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Rider> Riders { get; set; }
-    public DbSet<TableReservation> TableReservations { get; set; }
+        public DbSet<TableReservation> TableReservations { get; set; }
+        public DbSet<Delivery> Deliveries { get; set; }
 
         // Add the new DbSet for Inventory
         public DbSet<InventoryItem> InventoryItems { get; set; }
@@ -56,6 +57,19 @@ namespace FoodOrderingSystem.Data
                 .HasOne(au => au.IdentityUser)
                 .WithOne()
                 .HasForeignKey<ApplicationUser>(au => au.Id);
+
+            // Delivery relationships
+            modelBuilder.Entity<Delivery>()
+                .HasOne(d => d.Order)
+                .WithMany()
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Delivery>()
+                .HasOne(d => d.Rider)
+                .WithMany()
+                .HasForeignKey(d => d.RiderId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Add configuration for InventoryItem if needed
             modelBuilder.Entity<InventoryItem>()

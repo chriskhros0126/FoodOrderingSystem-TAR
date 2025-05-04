@@ -27,7 +27,7 @@
                             </p>
                             <p class="mb-1">
                                 <i class="fas fa-clock text-warning"></i>
-                                Pending Deliveries: @rider.Orders.Count(o => o.Status == OrderStatus.InTransit)
+                                Pending Deliveries: @rider.Orders.Count(o => o.Status == OrderStatus.OutForDelivery)
                             </p>
                         </div>
 

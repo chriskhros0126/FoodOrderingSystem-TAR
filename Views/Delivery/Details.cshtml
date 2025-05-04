@@ -1,0 +1,150 @@
+@model FoodOrderingSystem.Models.Delivery
+
+@{
+    ViewData["Title"] = "Delivery Details";
+}
+
+<div class="container mt-4">
+    <h2><i class="fas fa-info-circle me-2"></i>Delivery Details</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Delivery ID</dt>
+                        <dd class="col-sm-8">@Model.Id</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            @{
+                                var badgeClass = Model.Status switch
+                                {
+                                    DeliveryStatus.Assigned => "bg-secondary",
+                                    DeliveryStatus.PickedUp => "bg-primary",
+                                    DeliveryStatus.InTransit => "bg-info",
+                                    DeliveryStatus.Delivered => "bg-success",
+                                    DeliveryStatus.Failed => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@Model.Status</span>
+                        </dd>
+
+                        <dt class="col-sm-4">Assigned Time</dt>
+                        <dd class="col-sm-8">@Model.AssignedTime.ToString("g")</dd>
+
+                        @if (Model.PickupTime.HasValue)
+                        {
+                            <dt class="col-sm-4">Pickup Time</dt>
+                            <dd class="col-sm-8">@Model.PickupTime.Value.ToString("g")</dd>
+                        }
+
+                        @if (Model.DeliveryTime.HasValue)
+                        {
+                            <dt class="col-sm-4">Delivery Time</dt>
+                            <dd class="col-sm-8">@Model.DeliveryTime.Value.ToString("g")</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <dt class="col-sm-4">Notes</dt>
+                            <dd class="col-sm-8">@Model.Notes</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Rider Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">@Model.Rider.Name</dd>
+
+                        <dt class="col-sm-4">Phone</dt>
+                        <dd class="col-sm-8">@Model.Rider.PhoneNumber</dd>
+
+                        <dt class="col-sm-4">Vehicle</dt>
+                        <dd class="col-sm-8">@Model.Rider.VehicleType</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Rider.IsAvailable)
+                            {
+                                <span class="badge bg-success">Available</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Unavailable</span>
+                            }
+                        </dd>
+                    </dl>
+                    <a asp-controller="Rider" asp-action="Details" asp-route-id="@Model.RiderId" class="btn btn-info text-white">
+                        <i class="fas fa-user me-2"></i>View Rider Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Order ID</dt>
+                        <dd class="col-sm-8">#@Model.OrderId</dd>
+
+                        <dt class="col-sm-4">Customer</dt>
+                        <dd class="col-sm-8">@Model.Order.CustomerName</dd>
+
+                        <dt class="col-sm-4">Phone</dt>
+                        <dd class="col-sm-8">@Model.Order.CustomerPhone</dd>
+
+                        <dt class="col-sm-4">Address</dt>
+                        <dd class="col-sm-8">@Model.Order.DeliveryAddress</dd>
+
+                        <dt class="col-sm-4">Order Date</dt>
+                        <dd class="col-sm-8">@Model.Order.OrderDate.ToString("g")</dd>
+
+                        <dt class="col-sm-4">Total Amount</dt>
+                        <dd class="col-sm-8">@Model.Order.TotalAmount.ToString("C")</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.Order.Notes))
+                        {
+                            <dt class="col-sm-4">Order Notes</dt>
+                            <dd class="col-sm-8">@Model.Order.Notes</dd>
+                        }
+                    </dl>
+                    <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.OrderId" class="btn btn-info text-white">
+                        <i class="fas fa-shopping-bag me-2"></i>View Order Details
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="UpdateStatus" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Update Status
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

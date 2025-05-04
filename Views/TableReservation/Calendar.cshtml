@@ -47,7 +47,7 @@
                         @foreach (var timeSlot in timeSlots)
                         {
                             <tr>
-                                <td class="align-middle">@timeSlot.ToString(@"hh\:mm tt")</td>
+                                <td class="align-middle">@DateTime.Today.Add(timeSlot).ToString("h:mm tt")</td>
                                 @for (var date = startOfWeek; date <= endOfWeek; date = date.AddDays(1))
                                 {
                                     var reservations = Model.Where(r => 

@@ -7,24 +7,36 @@
 
     <!-- Status Filter -->
     <div class="btn-group mb-3" role="group">
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders()">All Orders</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('New')">New</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Confirmed')">Confirmed</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Preparing')">Preparing</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('OutForDelivery')">Out for Delivery</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Delivered')">Delivered</button>
-        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Cancelled')">Cancelled</button>
+        <button type="button" class="btn btn-primary" onclick="loadOrders()" id="allOrdersBtn">All Orders</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('New')" id="newOrdersBtn">New</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Confirmed')" id="confirmedOrdersBtn">Confirmed</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Preparing')" id="preparingOrdersBtn">Preparing</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('OutForDelivery')" id="deliveryOrdersBtn">Out for Delivery</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Delivered')" id="deliveredOrdersBtn">Delivered</button>
+        <button type="button" class="btn btn-outline-primary" onclick="loadOrders('Cancelled')" id="cancelledOrdersBtn">Cancelled</button>
     </div>
 
     <!-- Orders List -->
     <div id="ordersList">
         <!-- Orders will be loaded here -->
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading orders...</p>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script>
+        // Load orders immediately when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrders();
+            initializeEventListeners();
+        });
+
         // Initialize SignalR connection
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/orderHub")
@@ -35,7 +47,6 @@
         connection.start()
             .then(() => {
                 console.log("SignalR Connected");
-                loadOrders(); // Load initial orders
             })
             .catch(err => console.error(err));
 
@@ -51,11 +62,38 @@
                 url += `?status=${status}`;
             }
 
+            // Update button states
+            updateButtonStates(status);
+
             fetch(url)
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('ordersList').innerHTML = html;
+                    initializeEventListeners();
+                })
+                .catch(error => {
+                    console.error('Error loading orders:', error);
+                    document.getElementById('ordersList').innerHTML = 
+                        '<div class="alert alert-danger">Error loading orders. Please try again.</div>';
                 });
+        }
+
+        // Function to update button states
+        function updateButtonStates(activeStatus) {
+            const buttons = document.querySelectorAll('.btn-group .btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+
+            const activeButton = activeStatus 
+                ? document.getElementById(`${activeStatus.toLowerCase()}OrdersBtn`)
+                : document.getElementById('allOrdersBtn');
+            
+            if (activeButton) {
+                activeButton.classList.remove('btn-outline-primary');
+                activeButton.classList.add('btn-primary');
+            }
         }
 
         // Function to update order status
@@ -76,7 +114,7 @@
             .catch(error => console.error('Error:', error));
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function initializeEventListeners() {
             const statusSelects = document.querySelectorAll('select[name="newStatus"]');
             
             statusSelects.forEach(select => {
@@ -115,7 +153,7 @@
                 // Store the original value
                 select.dataset.originalValue = select.value;
             });
-        });
+        }
 
         function getStatusBadgeClass(status) {
             const statusClasses = {

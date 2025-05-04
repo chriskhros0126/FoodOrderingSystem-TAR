@@ -1,0 +1,98 @@
+@model FoodOrderingSystem.Models.Delivery
+
+@{
+    ViewData["Title"] = "Update Delivery Status";
+}
+
+<div class="container mt-4">
+    <h2><i class="fas fa-edit me-2"></i>Update Delivery Status</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Delivery ID</dt>
+                        <dd class="col-sm-8">@Model.Id</dd>
+
+                        <dt class="col-sm-4">Order ID</dt>
+                        <dd class="col-sm-8">#@Model.OrderId</dd>
+
+                        <dt class="col-sm-4">Customer</dt>
+                        <dd class="col-sm-8">@Model.Order.CustomerName</dd>
+
+                        <dt class="col-sm-4">Address</dt>
+                        <dd class="col-sm-8">@Model.Order.DeliveryAddress</dd>
+
+                        <dt class="col-sm-4">Rider</dt>
+                        <dd class="col-sm-8">@Model.Rider.Name</dd>
+
+                        <dt class="col-sm-4">Assigned Time</dt>
+                        <dd class="col-sm-8">@Model.AssignedTime.ToString("g")</dd>
+
+                        @if (Model.PickupTime.HasValue)
+                        {
+                            <dt class="col-sm-4">Pickup Time</dt>
+                            <dd class="col-sm-8">@Model.PickupTime.Value.ToString("g")</dd>
+                        }
+
+                        @if (Model.DeliveryTime.HasValue)
+                        {
+                            <dt class="col-sm-4">Delivery Time</dt>
+                            <dd class="col-sm-8">@Model.DeliveryTime.Value.ToString("g")</dd>
+                        }
+
+                        <dt class="col-sm-4">Current Status</dt>
+                        <dd class="col-sm-8">
+                            @{
+                                var badgeClass = Model.Status switch
+                                {
+                                    DeliveryStatus.Assigned => "bg-secondary",
+                                    DeliveryStatus.PickedUp => "bg-primary",
+                                    DeliveryStatus.InTransit => "bg-info",
+                                    DeliveryStatus.Delivered => "bg-success",
+                                    DeliveryStatus.Failed => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@Model.Status</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">New Status</label>
+                            <select name="status" class="form-select" asp-items="ViewBag.StatusList">
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Status
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

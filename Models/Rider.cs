@@ -6,6 +6,11 @@ namespace FoodOrderingSystem.Models
 {
     public class Rider
     {
+        public Rider()
+        {
+            Orders = new List<Order>();
+        }
+
         public int Id { get; set; }
 
         [Required]

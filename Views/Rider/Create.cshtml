@@ -7,32 +7,46 @@
 <div class="container">
     <h1>Add New Rider</h1>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-6">
-            <form asp-action="Create">
+            <form asp-action="Create" method="post" id="riderForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 
                 <div class="form-group mb-3">
                     <label asp-for="Name" class="control-label"></label>
-                    <input asp-for="Name" class="form-control" />
+                    <input asp-for="Name" class="form-control" required />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
                     <label asp-for="PhoneNumber" class="control-label"></label>
-                    <input asp-for="PhoneNumber" class="form-control" />
+                    <input asp-for="PhoneNumber" class="form-control" required />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
                     <label asp-for="Email" class="control-label"></label>
-                    <input asp-for="Email" class="form-control" />
+                    <input asp-for="Email" type="email" class="form-control" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
                     <label asp-for="VehicleType" class="control-label"></label>
-                    <select asp-for="VehicleType" class="form-control">
+                    <select asp-for="VehicleType" class="form-control" required>
                         <option value="">Select Vehicle Type</option>
                         <option value="Motorcycle">Motorcycle</option>
                         <option value="Bicycle">Bicycle</option>
@@ -43,12 +57,12 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="LicenseNumber" class="control-label"></label>
-                    <input asp-for="LicenseNumber" class="form-control" />
+                    <input asp-for="LicenseNumber" class="form-control" required />
                     <span asp-validation-for="LicenseNumber" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <input type="submit" value="Create" class="btn btn-primary" />
+                    <button type="submit" class="btn btn-primary" id="submitButton">Create</button>
                     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
                 </div>
             </form>
@@ -58,4 +72,28 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            $('#riderForm').on('submit', function (e) {
+                console.log('Form submitted');
+                
+                if (!this.checkValidity()) {
+                    console.log('Form validation failed');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
+                    return false;
+                }
+
+                // Disable submit button to prevent double submission
+                $('#submitButton').prop('disabled', true);
+                
+                // Log form data
+                const formData = new FormData(this);
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+            });
+        });
+    </script>
 } 

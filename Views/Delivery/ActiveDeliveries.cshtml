@@ -1,0 +1,111 @@
+@model IEnumerable<FoodOrderingSystem.Models.Delivery>
+
+@{
+    ViewData["Title"] = "Active Deliveries";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-motorcycle me-2"></i>Active Deliveries</h2>
+        <div>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-list me-2"></i>All Deliveries
+            </a>
+            <a asp-action="AssignRider" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Assign Rider
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No active deliveries found.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var delivery in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Order #@delivery.OrderId</h5>
+                            @{
+                                var badgeClass = delivery.Status switch
+                                {
+                                    DeliveryStatus.Assigned => "bg-secondary",
+                                    DeliveryStatus.PickedUp => "bg-primary",
+                                    DeliveryStatus.InTransit => "bg-info",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@delivery.Status</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="mb-2">Customer Information</h6>
+                                <p class="mb-1"><strong>Name:</strong> @delivery.Order.CustomerName</p>
+                                <p class="mb-1"><strong>Phone:</strong> @delivery.Order.CustomerPhone</p>
+                                <p><strong>Address:</strong> @delivery.Order.DeliveryAddress</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="mb-2">Rider Information</h6>
+                                <p class="mb-1"><strong>Name:</strong> @delivery.Rider.Name</p>
+                                <p><strong>Phone:</strong> @delivery.Rider.PhoneNumber</p>
+                            </div>
+                            
+                            <div>
+                                <h6 class="mb-2">Delivery Information</h6>
+                                <p class="mb-1"><strong>Assigned:</strong> @delivery.AssignedTime.ToString("g")</p>
+                                @if (delivery.PickupTime.HasValue)
+                                {
+                                    <p><strong>Picked Up:</strong> @delivery.PickupTime.Value.ToString("g")</p>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(delivery.Notes))
+                                {
+                                    <p class="mt-2"><strong>Notes:</strong> @delivery.Notes</p>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid gap-2">
+                                <a asp-action="UpdateStatus" asp-route-id="@delivery.Id" class="btn btn-primary">
+                                    Update Status
+                                </a>
+                                <a asp-action="Details" asp-route-id="@delivery.Id" class="btn btn-info text-white">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        // Initialize SignalR connection for real-time updates
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .withAutomaticReconnect()
+            .build();
+
+        // Start the connection
+        connection.start()
+            .then(() => console.log("SignalR Connected"))
+            .catch(err => console.error(err));
+
+        // Handle delivery status updates
+        connection.on("DeliveryStatusUpdated", (deliveryId, newStatus) => {
+            // Reload the page to reflect changes
+            window.location.reload();
+        });
+    </script>
+} 

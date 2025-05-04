@@ -1,0 +1,57 @@
+@model FoodOrderingSystem.Models.Rider
+
+@{
+    ViewData["Title"] = "Rider Details";
+}
+
+<div class="container mt-4">
+    <h2>Rider Details</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Name</dt>
+                <dd class="col-sm-8">@Model.Name</dd>
+
+                <dt class="col-sm-4">Email</dt>
+                <dd class="col-sm-8">@Model.Email</dd>
+
+                <dt class="col-sm-4">Phone Number</dt>
+                <dd class="col-sm-8">@Model.PhoneNumber</dd>
+
+                <dt class="col-sm-4">Vehicle Type</dt>
+                <dd class="col-sm-8">@Model.VehicleType</dd>
+
+                <dt class="col-sm-4">License Number</dt>
+                <dd class="col-sm-8">@Model.LicenseNumber</dd>
+
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">
+                    @if (Model.IsAvailable)
+                    {
+                        <span class="badge bg-success">Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Unavailable</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4">Total Deliveries</dt>
+                <dd class="col-sm-8">@Model.TotalDeliveries</dd>
+
+                <dt class="col-sm-4">Rating</dt>
+                <dd class="col-sm-8">@Model.Rating.ToString("0.0")</dd>
+
+                <dt class="col-sm-4">Last Active</dt>
+                <dd class="col-sm-8">@Model.LastActive.ToString("g")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div> 

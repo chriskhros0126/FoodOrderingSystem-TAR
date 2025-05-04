@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Data;
+using System.Collections.Generic;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -50,16 +51,49 @@ namespace FoodOrderingSystem.Controllers
         // POST: Rider/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,PhoneNumber,Email,VehicleType,LicenseNumber")] Rider rider)
+        public async Task<IActionResult> Create(Rider rider)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+                TempData["ErrorMessage"] = "Validation errors: " + string.Join(", ", errors);
+                return View(rider);
+            }
+
+            try
+            {
+                // Initialize required fields
                 rider.LastActive = DateTime.UtcNow;
+                rider.TotalDeliveries = 0;
+                rider.Rating = 0;
+                rider.IsAvailable = true;
+
+                // Log the rider data being created
+                Console.WriteLine($"Creating rider: Name={rider.Name}, Email={rider.Email}, Phone={rider.PhoneNumber}");
+
                 _context.Add(rider);
                 await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = "Rider created successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            return View(rider);
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Database error while creating rider: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                TempData["ErrorMessage"] = "An error occurred while saving to the database. Please try again.";
+                return View(rider);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating rider: {ex.Message}");
+                TempData["ErrorMessage"] = "An unexpected error occurred. Please try again.";
+                return View(rider);
+            }
         }
 
         // GET: Rider/Edit/5

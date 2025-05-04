@@ -1,0 +1,179 @@
+@model FoodOrderingSystem.Controllers.AssignRiderViewModel
+
+@{
+    ViewData["Title"] = "Assign Rider";
+}
+
+<div class="container mt-4">
+    <h2>Assign Rider to Order</h2>
+    <hr />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> There are no orders ready for delivery assignment at this time.
+        </div>
+    }
+    else if (!Model.Riders.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> There are no available riders at this time.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-motorcycle me-2"></i>Assign Delivery</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="AssignRider" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="OrderId" class="form-label">Order</label>
+                                <select asp-for="OrderId" class="form-select" id="orderSelect">
+                                    <option value="">-- Select Order --</option>
+                                    @foreach (var order in Model.Orders)
+                                    {
+                                        var statusBadge = order.Status == OrderStatus.Preparing ? "bg-warning" : "bg-info";
+                                        <option value="@order.Id">
+                                            Order #@order.Id - @order.CustomerName (@order.Status)
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="OrderId" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="RiderId" class="form-label">Rider</label>
+                                <select asp-for="RiderId" class="form-select" asp-items="Model.AvailableRidersSelectList">
+                                    <option value="">-- Select Rider --</option>
+                                </select>
+                                <span asp-validation-for="RiderId" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="Notes" class="form-label">Delivery Notes</label>
+                                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Special instructions for the rider"></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check-circle me-2"></i>Assign Rider
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle me-2"></i>Order Details</h5>
+                    </div>
+                    <div class="card-body" id="orderDetails">
+                        <div class="alert alert-info">
+                            Select an order to view details
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-list me-2"></i>Available Orders</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Address</th>
+                                <th>Order Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.Orders)
+                            {
+                                var statusBadge = order.Status == OrderStatus.Preparing ? "bg-warning" : "bg-info";
+                                <tr>
+                                    <td>#@order.Id</td>
+                                    <td>@order.CustomerName</td>
+                                    <td>@order.DeliveryAddress</td>
+                                    <td>@order.OrderDate.ToString("g")</td>
+                                    <td><span class="badge @statusBadge">@order.Status</span></td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary select-order" data-order-id="@order.Id">
+                                            Select
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            // Handle order selection change
+            $('#orderSelect').change(function () {
+                loadOrderDetails($(this).val());
+            });
+
+            // Handle select buttons in table
+            $('.select-order').click(function() {
+                const orderId = $(this).data('order-id');
+                $('#orderSelect').val(orderId).trigger('change');
+                
+                // Scroll to the form
+                $('html, body').animate({
+                    scrollTop: $("#orderSelect").offset().top - 100
+                }, 500);
+            });
+
+            function loadOrderDetails(orderId) {
+                if (orderId) {
+                    $.ajax({
+                        url: `/Order/Details/${orderId}?partial=true`,
+                        type: 'GET',
+                        success: function (data) {
+                            $('#orderDetails').html(data);
+                        },
+                        error: function () {
+                            $('#orderDetails').html('<div class="alert alert-danger">Failed to load order details</div>');
+                        }
+                    });
+                } else {
+                    $('#orderDetails').html('<div class="alert alert-info">Select an order to view details</div>');
+                }
+            }
+        });
+    </script>
+} 

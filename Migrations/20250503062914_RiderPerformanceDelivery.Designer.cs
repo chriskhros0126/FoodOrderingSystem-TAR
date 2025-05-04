@@ -4,6 +4,7 @@ using FoodOrderingSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodOrderingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250503062914_RiderPerformanceDelivery")]
+    partial class RiderPerformanceDelivery
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,44 +41,6 @@ namespace FoodOrderingSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ApplicationUsers");
-                });
-
-            modelBuilder.Entity("FoodOrderingSystem.Models.Delivery", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AssignedTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeliveryTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("PickupTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("RiderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("RiderId");
-
-                    b.ToTable("Deliveries");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Dish", b =>
@@ -540,25 +505,6 @@ namespace FoodOrderingSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("IdentityUser");
-                });
-
-            modelBuilder.Entity("FoodOrderingSystem.Models.Delivery", b =>
-                {
-                    b.HasOne("FoodOrderingSystem.Models.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FoodOrderingSystem.Models.Rider", "Rider")
-                        .WithMany()
-                        .HasForeignKey("RiderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Rider");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
