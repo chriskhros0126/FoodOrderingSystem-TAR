@@ -11,9 +11,46 @@
 
     <div id="alert-container"></div>
 
-    <p>
-        <a asp-action="Create" class="btn btn-primary">Create New Dish</a>
-    </p>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Categories</option>
+                                @foreach (var cat in ViewBag.Categories)
+                                {
+                                    <option value="@cat" selected="@(ViewBag.CurrentCategory == cat)">@cat</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sortOrder" class="form-label">Sort By</label>
+                            <select name="sortOrder" id="sortOrder" class="form-select" onchange="this.form.submit()">
+                                <option value="">Default</option>
+                                <option value="price_asc" selected="@(ViewBag.CurrentSort == "price_asc")">Price: Low to High</option>
+                                <option value="price_desc" selected="@(ViewBag.CurrentSort == "price_desc")">Price: High to Low</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" id="specialOnly" name="specialOnly" value="true" 
+                                       @(ViewBag.SpecialOnly == true ? "checked" : "") onchange="this.form.submit()">
+                                <label class="form-check-label" for="specialOnly">Show Specials Only</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mt-4">
+                                <a asp-action="Create" class="btn btn-primary">Create New Dish</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @Html.AntiForgeryToken()
 

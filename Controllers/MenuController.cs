@@ -22,10 +22,37 @@ namespace FoodOrderingSystem.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string sortOrder, string category, bool? specialOnly)
         {
-            var dishes = _context.Dishes.ToList();
-            return View(dishes);        
+            var dishes = _context.Dishes.AsQueryable();
+
+            // Apply category filter
+            if (!string.IsNullOrEmpty(category))
+            {
+                dishes = dishes.Where(d => d.Category == category);
+            }
+
+            // Apply special filter
+            if (specialOnly.HasValue && specialOnly.Value)
+            {
+                dishes = dishes.Where(d => d.IsSpecialToday);
+            }
+
+            // Apply sorting
+            dishes = sortOrder?.ToLower() switch
+            {
+                "price_asc" => dishes.OrderBy(d => d.Price),
+                "price_desc" => dishes.OrderByDescending(d => d.Price),
+                _ => dishes.OrderBy(d => d.Name) // Default sorting
+            };
+
+            // Get unique categories for the filter dropdown
+            ViewBag.Categories = _context.Dishes.Select(d => d.Category).Distinct().ToList();
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentCategory = category;
+            ViewBag.SpecialOnly = specialOnly;
+
+            return View(dishes.ToList());
         }
 
         public IActionResult Create() // GET AND POST

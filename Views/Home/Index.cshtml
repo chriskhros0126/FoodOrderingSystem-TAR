@@ -62,27 +62,111 @@
         <!-- Featured Dishes Section -->
         <div class="row">
             <div class="col-12">
-                <h2 class="text-center mb-4">Our Menu</h2>
-                @if (User.IsInRole("Admin"))
-                {
-                    <div class="text-center mb-3">
-                        <a asp-controller="Menu" asp-action="Create" class="btn btn-outline-primary">
-                            <i class="fas fa-plus-circle"></i> Add New Dish
-                        </a>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">Our Menu</h2>
+                    <div class="d-flex gap-3">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="categoryFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter"></i> 
+                                @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "All Categories" : ViewBag.CurrentCategory)
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="categoryFilterDropdown">
+                                <li>
+                                    <a class="dropdown-item @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-th-large"></i> All Categories
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Appetizers" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "Appetizers", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-utensils"></i> Appetizers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Mains" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "Mains", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-drumstick-bite"></i> Main Courses
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Desserts" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "Desserts", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-ice-cream"></i> Desserts
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Beverages" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "Beverages", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-glass-martini-alt"></i> Beverages
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Sides" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { category = "Sides", sortOrder = ViewBag.CurrentSort })">
+                                        <i class="fas fa-carrot"></i> Side Dishes
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="priceFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-sort-amount-down"></i> Sort by Price
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="priceFilterDropdown">
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentSort == "price_asc" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { sortOrder = "price_asc", category = ViewBag.CurrentCategory })">
+                                        Price: Low to High
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item @(ViewBag.CurrentSort == "price_desc" ? "active" : "")" 
+                                       href="@Url.Action("Index", "Home", new { sortOrder = "price_desc", category = ViewBag.CurrentCategory })">
+                                        Price: High to Low
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Menu" asp-action="Create" class="btn btn-outline-primary">
+                                <i class="fas fa-plus-circle"></i> Add New Dish
+                            </a>
+                        }
                     </div>
-                }
+                </div>
             </div>
             @foreach (var dish in ViewBag.FeaturedDishes ?? new List<Dish>())
             {
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
+                    <div class="card h-100 @(dish.IsSpecialToday ? "border-warning" : "")">
+                        @if (dish.IsSpecialToday)
+                        {
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-star"></i> Today's Special
+                                </span>
+                            </div>
+                        }
                         <div class="card-img-container" style="height: 200px; overflow: hidden;">
                             <img src="@dish.ImageUrl" class="card-img-top" alt="@dish.Name" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@dish.Name</h5>
+                            <h5 class="card-title">
+                                @dish.Name
+                                @if (dish.IsSpecialToday)
+                                {
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i>
+                                    </small>
+                                }
+                            </h5>
                             <p class="card-text flex-grow-1">@dish.Description</p>
-                            <p class="card-text"><strong>Price: @dish.Price.ToString("C")</strong></p>
+                            <p class="card-text">
+                                <strong>Price: @dish.Price.ToString("C")</strong>
+                            </p>
                             <div class="d-grid gap-2 mt-auto">
                                 <a href="@Url.Action("Create", "Order", new { dishId = dish.Id })" class="btn btn-primary">
                                     Order Now
