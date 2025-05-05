@@ -34,7 +34,7 @@ public class HomeController : Controller
             "price_asc" => dishes.OrderBy(d => d.Price),
             "price_desc" => dishes.OrderByDescending(d => d.Price),
             _ => dishes.OrderByDescending(d => d.IsSpecialToday)
-                      .ThenByDescending(d => d.PopularityScore)
+            .ThenByDescending(d => d.PopularityScore)
         };
 
         // Define predefined categories

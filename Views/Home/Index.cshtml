@@ -6,7 +6,28 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="container">
+<!-- Fixed Transparent Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-transparent fixed-top shadow-none" style="z-index: 1050;">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="#" style="font-family: 'Playfair Display', serif; font-size: 2rem; color: #2b2b2b;"></a>
+    </div>
+</nav>
+
+@if (!(SignInManager.IsSignedIn(User) && User.IsInRole("Admin")))
+{
+    <!-- Hero Section -->
+    <div class="hero-section d-flex flex-column flex-md-row align-items-center justify-content-start text-start" style="min-height: 100vh; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); background: url('/images/dishes/home-background.jpg') center center/cover no-repeat;">
+         <div class="d-flex flex-column justify-content-center align-items-start flex-grow-1 px-4 ms-md-5 ps-md-5" style="z-index: 2; min-height: 100vh;">
+            <h1 class="display-3 fw-semibold mb-4" style="font-family: 'Playfair Display', serif; color: #fff;">Welcome <br>to Our <br><strong>Food Ordering System.</strong></h1>
+            <p class="mb-4" style="color: #fff; max-width: 500px;">Order your favorite dishes with just a few clicks!</p>
+            <a href="#menu-section" class="btn btn-light btn-lg rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                &rarr;
+            </a>
+        </div>
+    </div>
+}
+
+<div class="container" id="menu-section">
     <div class="text-center">
         <h1 class="display-4">Welcome to Our Food Ordering System</h1>
         <p class="lead">Order your favorite dishes with just a few clicks!</p>
