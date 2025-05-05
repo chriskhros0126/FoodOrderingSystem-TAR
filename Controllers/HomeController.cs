@@ -17,16 +17,39 @@ public class HomeController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string sortOrder, string category)
     {
         // Get all available dishes
-        var dishes = await _context.Dishes
-            .Where(d => d.IsAvailable)
-            .OrderByDescending(d => d.IsSpecialToday)
-            .ThenByDescending(d => d.PopularityScore)
-            .ToListAsync();
+        var dishes = _context.Dishes.Where(d => d.IsAvailable);
 
-        ViewBag.FeaturedDishes = dishes;
+        // Apply category filter
+        if (!string.IsNullOrEmpty(category))
+        {
+            dishes = dishes.Where(d => d.Category == category);
+        }
+
+        // Apply sorting
+        dishes = sortOrder?.ToLower() switch
+        {
+            "price_asc" => dishes.OrderBy(d => d.Price),
+            "price_desc" => dishes.OrderByDescending(d => d.Price),
+            _ => dishes.OrderByDescending(d => d.IsSpecialToday)
+                      .ThenByDescending(d => d.PopularityScore)
+        };
+
+        // Define predefined categories
+        ViewBag.Categories = new List<string>
+        {
+            "Appetizers",
+            "Mains",
+            "Desserts",
+            "Beverages",
+            "Sides"
+        };
+
+        ViewBag.FeaturedDishes = await dishes.ToListAsync();
+        ViewBag.CurrentSort = sortOrder;
+        ViewBag.CurrentCategory = category;
         return View();
     }
 
