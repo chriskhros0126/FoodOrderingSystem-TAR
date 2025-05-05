@@ -1,0 +1,36 @@
+﻿@model FoodOrderingSystem.Models.Invoice
+
+@{
+    ViewData["Title"] = "Invoice Details";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Invoice #@Model.InvoiceId</h3>
+                </div>
+                <div class="card-body">
+                    <h5>Invoice Information</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Invoice ID:</strong> @Model.InvoiceId</p>
+                            <p><strong>Generated Date:</strong> @Model.GeneratedDate.ToString("g")</p>
+                            <p><strong>Order ID:</strong> #@Model.OrderId</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="@Url.Action("Details", "Order", new { id = Model.OrderId })" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Order
+                        </a>
+                        <a href="@Url.Action("Download", "Invoice", new { id = Model.InvoiceId })" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download Invoice
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

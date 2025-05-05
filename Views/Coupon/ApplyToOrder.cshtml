@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Apply Coupon";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Apply Coupon to Order #@ViewBag.OrderId</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Coupon" asp-action="ApplyToOrder" method="post">
+                        <input type="hidden" name="orderId" value="@ViewBag.OrderId" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Order Total</label>
+                            <input type="text" class="form-control" value="@ViewBag.OrderTotal.ToString("C")" readonly />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Coupon Code</label>
+                            <input type="text" class="form-control" name="couponCode" placeholder="Enter coupon code" required />
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Apply Coupon</button>
+                            <a href="/Order/Details/@ViewBag.OrderId" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

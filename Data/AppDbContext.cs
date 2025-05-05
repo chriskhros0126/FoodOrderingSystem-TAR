@@ -22,6 +22,12 @@ namespace FoodOrderingSystem.Data
 
         // Add the new DbSet for Inventory
         public DbSet<InventoryItem> InventoryItems { get; set; }
+        
+        // Added DbSets for Coupon, Feedback, Invoice, and Payment
+        public DbSet<Coupon> Coupons { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +81,42 @@ namespace FoodOrderingSystem.Data
             modelBuilder.Entity<InventoryItem>()
                 .Property(i => i.CostPerUnit)
                 .HasPrecision(18, 2);
+                
+            // Configure relationships for new entities
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.Order)
+                .WithMany(o => o.Feedbacks)
+                .HasForeignKey(f => f.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Order)
+                .WithMany(o => o.Invoices)
+                .HasForeignKey(i => i.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Order)
+                .WithMany(o => o.Payments)
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Configure precision for Payment.Amount
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+                
+            // Configure precision for Coupon.DiscountValue
+            modelBuilder.Entity<Coupon>()
+                .Property(c => c.DiscountValue)
+                .HasPrecision(18, 2);
+                
+            // Configure Order-Coupon relationship
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Coupon)
+                .WithMany(c => c.Orders)
+                .HasForeignKey(o => o.CouponId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

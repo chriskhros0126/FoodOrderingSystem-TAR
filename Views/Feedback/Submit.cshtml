@@ -1,0 +1,81 @@
+﻿@model FoodOrderingSystem.Models.Feedback
+
+@{
+    ViewData["Title"] = "Submit Feedback";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Submit Feedback for Order #@ViewBag.OrderId</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Submit" method="post">
+                        @if (ViewBag.OrderId != null)
+                        {
+                            <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label">Rating (1-5)</label>
+                            <div class="rating">
+                                <input type="radio" asp-for="Rating" value="5" id="5" /><label for="5">☆</label>
+                                <input type="radio" asp-for="Rating" value="4" id="4" /><label for="4">☆</label>
+                                <input type="radio" asp-for="Rating" value="3" id="3" /><label for="3">☆</label>
+                                <input type="radio" asp-for="Rating" value="2" id="2" /><label for="2">☆</label>
+                                <input type="radio" asp-for="Rating" value="1" id="1" /><label for="1">☆</label>
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label">Your Comments</label>
+                            <textarea asp-for="Comment" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Message" class="form-label">Additional Feedback</label>
+                            <textarea asp-for="Message" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Submit Feedback</button>
+                            <a href="/Order/Details/@ViewBag.OrderId" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .rating input {
+            display: none;
+        }
+        .rating label {
+            color: #ddd;
+            font-size: 2em;
+            padding: 0 0.1em;
+            cursor: pointer;
+        }
+        .rating input:checked ~ label {
+            color: #FFD700;
+        }
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: #FFD700;
+        }
+    </style>
+}

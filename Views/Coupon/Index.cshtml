@@ -1,0 +1,41 @@
+﻿@model IEnumerable<FoodOrderingSystem.Models.Coupon>
+
+@{
+    ViewData["Title"] = "Coupons";
+}
+
+<h2>Coupons</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Coupon</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Discount</th>
+            <th>Valid From</th>
+            <th>Valid Until</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Code</td>
+                <td>@item.DiscountValue</td>
+                <td>@item.ValidFrom.ToShortDateString()</td>
+                <td>@item.ValidUntil.ToShortDateString()</td>
+                <td>@(item.IsActive ? "Active" : "Inactive")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.CouponId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.CouponId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.CouponId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

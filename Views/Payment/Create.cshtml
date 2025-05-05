@@ -1,0 +1,106 @@
+﻿@model FoodOrderingSystem.Models.Payment
+
+@{
+    ViewData["Title"] = "Create Payment";
+}
+
+<div class="container">
+    <h2>Create Payment</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="OrderId" class="form-label">Order ID</label>
+                    <input asp-for="OrderId" class="form-control" readonly value="@ViewBag.OrderId" />
+                    <span asp-validation-for="OrderId" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="PaymentMethod" class="form-label">Payment Method</label>
+                    <select asp-for="PaymentMethod" class="form-select">
+                        <option value="">-- Select Payment Method --</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                    </select>
+                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Amount" class="form-label">Amount</label>
+                    <input asp-for="Amount" class="form-control" value="@ViewBag.Amount" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Apply Coupon (Optional)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="couponCode" class="form-label">Coupon Code</label>
+                            <div class="input-group">
+                                <input type="text" id="couponCode" name="couponCode" class="form-control" placeholder="Enter coupon code" />
+                                <button type="button" id="applyCoupon" class="btn btn-outline-primary">Apply</button>
+                            </div>
+                            <div id="couponMessage" class="form-text mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Create Payment</button>
+                    <a href="@Url.Action("Details", "Order", new { id = ViewBag.OrderId })" class="btn btn-outline-secondary">Back to Order</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.getElementById('applyCoupon').addEventListener('click', function() {
+            const couponCode = document.getElementById('couponCode').value.trim();
+            const messageEl = document.getElementById('couponMessage');
+            
+            if (!couponCode) {
+                messageEl.innerHTML = '<span class="text-danger">Please enter a coupon code</span>';
+                return;
+            }
+            
+            // Validate the coupon
+            fetch(`/Coupon/ValidateForCheckout?code=${encodeURIComponent(couponCode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        // Calculate discount
+                        const amountInput = document.getElementById('Amount');
+                        const currentAmount = parseFloat(amountInput.value);
+                        const discountAmount = currentAmount * (data.coupon.discountValue / 100);
+                        const newAmount = (currentAmount - discountAmount).toFixed(2);
+                        
+                        // Update amount
+                        amountInput.value = newAmount;
+                        
+                        // Set coupon code to hidden input
+                        document.getElementById('CouponCode').value = couponCode;
+                        
+                        messageEl.innerHTML = `<span class="text-success">Coupon applied! You saved $${discountAmount.toFixed(2)}</span>`;
+                    } else {
+                        messageEl.innerHTML = `<span class="text-danger">${data.message}</span>`;
+                    }
+                })
+                .catch(error => {
+                    messageEl.innerHTML = '<span class="text-danger">Error validating coupon</span>';
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+}

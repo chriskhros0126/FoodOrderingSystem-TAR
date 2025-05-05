@@ -29,8 +29,17 @@ namespace FoodOrderingSystem.Models
         public string CustomerPhone { get; set; }
 
         public string? Notes { get; set; }
+        
+        // Optional coupon reference
+        public int? CouponId { get; set; }
+        public Coupon Coupon { get; set; }
 
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        
+        // Navigation properties for related entities
+        public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+        public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }
 
     public class OrderItem

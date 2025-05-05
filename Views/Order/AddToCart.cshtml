@@ -1,0 +1,124 @@
+@model FoodOrderingSystem.Models.Dish
+@{
+    ViewData["Title"] = "Add to Cart";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Add to Cart</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" />
+                            }
+                            else
+                            {
+                                <div class="placeholder-image bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-utensils fa-3x text-secondary"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-3">@Model.Name</h4>
+                            <p class="text-muted">@Model.Description</p>
+                            <p class="text-primary fs-4">@Model.Price.ToString("C")</p>
+                            
+                            <form id="add-to-cart-form">
+                                <input type="hidden" id="dishId" value="@Model.Id" />
+                                
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <div class="input-group" style="max-width: 150px;">
+                                        <button class="btn btn-outline-secondary" type="button" id="decrease-qty">-</button>
+                                        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" />
+                                        <button class="btn btn-outline-secondary" type="button" id="increase-qty">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="special-instructions" class="form-label">Special Instructions (Optional)</label>
+                                    <textarea class="form-control" id="special-instructions" rows="2"></textarea>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-success" id="add-to-cart-btn">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                    <a href="/Dish" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back to Menu
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInput = document.getElementById('quantity');
+            
+            document.getElementById('decrease-qty').addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+            
+            document.getElementById('increase-qty').addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                quantityInput.value = currentValue + 1;
+            });
+            
+            document.getElementById('add-to-cart-btn').addEventListener('click', function() {
+                const dishId = document.getElementById('dishId').value;
+                const quantity = parseInt(quantityInput.value);
+                const specialInstructions = document.getElementById('special-instructions').value;
+                
+                if (quantity < 1) {
+                    alert('Please select a valid quantity');
+                    return;
+                }
+                
+                fetch('/Order/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        dishId: dishId,
+                        quantity: quantity,
+                        notes: specialInstructions
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (confirm('Item added to cart! Would you like to view your cart now?')) {
+                            window.location.href = '/Order/Cart';
+                        } else {
+                            window.location.href = '/Dish';
+                        }
+                    } else {
+                        alert('Failed to add item to cart. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred. Please try again.');
+                    console.error('Error:', error);
+                });
+            });
+        });
+    </script>
+}

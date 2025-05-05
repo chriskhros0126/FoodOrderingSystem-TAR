@@ -1,0 +1,59 @@
+﻿@model IEnumerable<FoodOrderingSystem.Models.Payment>
+@{
+    ViewData["Title"] = "Payments";
+}
+
+<div class="container">
+    <h2>Payments</h2>
+    <hr />
+    
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <p>No payments have been recorded yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Payment #</th>
+                        <th>Order #</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model)
+                    {
+                        <tr>
+                            <td>@payment.PaymentId</td>
+                            <td>@payment.OrderId</td>
+                            <td>@payment.PaymentMethod</td>
+                            <td>@payment.Amount.ToString("C")</td>
+                            <td>@payment.PaymentDate.ToString("g")</td>
+                            <td>
+                                <span class="badge @(payment.PaymentStatus == "Completed" ? "bg-success" : payment.PaymentStatus == "Pending" ? "bg-warning" : "bg-danger")">
+                                    @payment.PaymentStatus
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", "Payment", new { id = payment.PaymentId })" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a href="@Url.Action("Details", "Order", new { id = payment.OrderId })" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-shopping-cart"></i> View Order
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

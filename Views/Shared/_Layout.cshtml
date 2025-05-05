@@ -104,6 +104,28 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="transactionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Transactions
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="transactionDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Payment" asp-action="Index">
+                                            <i class="fas fa-credit-card me-1"></i> Payments
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Invoice" asp-action="Index">
+                                            <i class="fas fa-file-invoice-dollar me-1"></i> Invoices
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Feedback" asp-action="Index">
+                                            <i class="fas fa-star me-1"></i> Feedback
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-dark" href="#" id="reservationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-calendar-alt me-1"></i> Reservations
                                 </a>

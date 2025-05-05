@@ -11,6 +11,18 @@
                     <h3 class="mb-0">Order Details</h3>
                 </div>
                 <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <h5>Order Information</h5>
@@ -49,6 +61,17 @@
                                 }
                             </tbody>
                             <tfoot>
+                                @if (Model.Coupon != null)
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                        <td>@((Model.TotalAmount / (1 - Model.Coupon.DiscountValue / 100.0m)).ToString("C"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Discount (@Model.Coupon.Code - @Model.Coupon.DiscountValue%):</strong></td>
+                                        <td class="text-danger">-@(((Model.TotalAmount / (1 - Model.Coupon.DiscountValue / 100.0m)) * Model.Coupon.DiscountValue / 100.0m).ToString("C"))</td>
+                                    </tr>
+                                }
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Total:</strong></td>
                                     <td><strong>@Model.TotalAmount.ToString("C")</strong></td>
@@ -56,6 +79,143 @@
                             </tfoot>
                         </table>
                     </div>
+
+                    @if (Model.Feedbacks != null && Model.Feedbacks.Any())
+                    {
+                        <div class="mt-4">
+                            <h5>Customer Feedback</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    @foreach (var feedback in Model.Feedbacks)
+                                    {
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <strong>Rating:</strong>
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= feedback.Rating)
+                                                        {
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="far fa-star text-warning"></i>
+                                                        }
+                                                    }
+                                                </div>
+                                                <small class="text-muted">@feedback.DateSubmitted.ToString("MMM dd, yyyy")</small>
+                                            </div>
+                                            
+                                            @if (!string.IsNullOrEmpty(feedback.Comment))
+                                            {
+                                                <p class="mt-2">@feedback.Comment</p>
+                                            }
+                                            
+                                            @if (!string.IsNullOrEmpty(feedback.Message))
+                                            {
+                                                <p class="text-muted mt-1">@feedback.Message</p>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Payments != null && Model.Payments.Any())
+                    {
+                        <div class="mt-4">
+                            <h5>Payment Information</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <thead>
+                                                <tr>
+                                                    <th>Payment ID</th>
+                                                    <th>Method</th>
+                                                    <th>Amount</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var payment in Model.Payments)
+                                                {
+                                                    <tr>
+                                                        <td>#@payment.PaymentId</td>
+                                                        <td>@payment.PaymentMethod</td>
+                                                        <td>@payment.Amount.ToString("C")</td>
+                                                        <td>@payment.PaymentDate.ToString("g")</td>
+                                                        <td>
+                                                            <span class="badge @(payment.PaymentStatus == "Completed" ? "bg-success" : payment.PaymentStatus == "Pending" ? "bg-warning" : "bg-danger")">
+                                                                @payment.PaymentStatus
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (Model.Invoices != null && Model.Invoices.Any())
+                    {
+                        <div class="mt-4">
+                            <h5>Invoices</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoice ID</th>
+                                                    <th>Generated Date</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var invoice in Model.Invoices)
+                                                {
+                                                    <tr>
+                                                        <td>#@invoice.InvoiceId</td>
+                                                        <td>@invoice.GeneratedDate.ToString("g")</td>
+                                                        <td>
+                                                            <a href="@Url.Action("Download", "Invoice", new { id = invoice.InvoiceId })" class="btn btn-sm btn-outline-primary">
+                                                                <i class="fas fa-download"></i> Download
+                                                            </a>
+                                                            <a href="@Url.Action("Details", "Invoice", new { id = invoice.InvoiceId })" class="btn btn-sm btn-outline-info">
+                                                                <i class="fas fa-eye"></i> View
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.Coupon == null && Model.Status != FoodOrderingSystem.Models.OrderStatus.Delivered && Model.Status != FoodOrderingSystem.Models.OrderStatus.Cancelled)
+                    {
+                        <div class="mt-3">
+                            <form asp-controller="Coupon" asp-action="ApplyToOrder" method="post" class="row g-3">
+                                <input type="hidden" name="orderId" value="@Model.Id" />
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" name="couponCode" placeholder="Enter coupon code" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-primary">Apply Coupon</button>
+                                </div>
+                            </form>
+                        </div>
+                    }
 
                     @if (!string.IsNullOrEmpty(Model.Notes))
                     {
@@ -65,10 +225,30 @@
                         </div>
                     }
 
-                    <div class="mt-4">
+                    <div class="mt-4 d-flex justify-content-between">
                         <a href="/Order" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Orders
                         </a>
+                        
+                        <div>
+                            @if (Model.Status == FoodOrderingSystem.Models.OrderStatus.Delivered)
+                            {
+                                <a href="/Feedback/Submit?orderId=@Model.Id" class="btn btn-success">
+                                    <i class="fas fa-star"></i> Leave Feedback
+                                </a>
+                            }
+                            
+                            <a href="/Invoice/Generate?orderId=@Model.Id" class="btn btn-info">
+                                <i class="fas fa-file-invoice"></i> Generate Invoice
+                            </a>
+                            
+                            @if (Model.Status != FoodOrderingSystem.Models.OrderStatus.Delivered && Model.Status != FoodOrderingSystem.Models.OrderStatus.Cancelled)
+                            {
+                                <a href="/Payment/Create?orderId=@Model.Id" class="btn btn-primary">
+                                    <i class="fas fa-credit-card"></i> Make Payment
+                                </a>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

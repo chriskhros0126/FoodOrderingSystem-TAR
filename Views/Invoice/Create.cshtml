@@ -1,0 +1,46 @@
+﻿@model FoodOrderingSystem.Models.Invoice
+
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<div class="container">
+    <h2>Generate Invoice</h2>
+    <hr />
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="OrderId" class="form-label">Order ID</label>
+                    <input asp-for="OrderId" class="form-control" value="@ViewBag.OrderId" readonly />
+                    <span asp-validation-for="OrderId" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="GeneratedDate" class="form-label">Generated Date</label>
+                    <input asp-for="GeneratedDate" class="form-control" value="@DateTime.Now.ToString("g")" readonly />
+                    <span asp-validation-for="GeneratedDate" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="PdfPath" class="form-label">PDF Path</label>
+                    <input asp-for="PdfPath" class="form-control" value="/invoices/invoice_@ViewBag.OrderId.pdf" />
+                    <span asp-validation-for="PdfPath" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Generate Invoice</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                    <a href="@Url.Action("Details", "Order", new { id = ViewBag.OrderId })" class="btn btn-outline-secondary">Back to Order</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

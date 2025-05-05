@@ -97,6 +97,25 @@ namespace FoodOrderingSystem.Controllers
 
             order.TotalAmount = totalAmount;
 
+            // Apply coupon if provided
+            if (!string.IsNullOrEmpty(model.CouponCode))
+            {
+                var now = DateTime.Now;
+                var coupon = await _context.Coupons
+                    .FirstOrDefaultAsync(c => c.Code == model.CouponCode && c.IsActive &&
+                                            c.ValidFrom <= now && c.ValidUntil >= now);
+                                    
+                if (coupon != null)
+                {
+                    // Apply the coupon to the order
+                    order.CouponId = coupon.CouponId;
+                    
+                    // Recalculate the order total with discount
+                    decimal discountAmount = order.TotalAmount * (coupon.DiscountValue / 100.0m);
+                    order.TotalAmount -= discountAmount;
+                }
+            }
+
             try
             {
                 _context.Orders.Add(order);
@@ -186,6 +205,10 @@ namespace FoodOrderingSystem.Controllers
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
+                .Include(o => o.Coupon)
+                .Include(o => o.Feedbacks)
+                .Include(o => o.Payments)
+                .Include(o => o.Invoices)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
@@ -251,6 +274,7 @@ namespace FoodOrderingSystem.Controllers
         public string DeliveryAddress { get; set; }
         public string? Notes { get; set; }
         public List<OrderItemViewModel> OrderItems { get; set; }
+        public string? CouponCode { get; set; }
     }
 
     public class OrderItemViewModel
