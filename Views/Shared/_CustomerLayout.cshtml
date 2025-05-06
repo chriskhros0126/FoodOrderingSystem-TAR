@@ -75,25 +75,6 @@
             width: 100%;
         }
         
-        .cart-icon {
-            position: relative;
-        }
-        
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
         .user-action-btn {
             background-color: var(--primary-color);
             color: white !important;
@@ -214,8 +195,8 @@
     <header class="customer-header sticky-top">
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    Tasty<span class="logo-highlight">Delights</span>
+                <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                    <img src="~/images/logo.png" alt="ThePeak Logo" style="height: 60px; width: auto; max-width: 100%; padding: 5px 0;">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -234,30 +215,8 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#footer-contact">Contact</a>
                         </li>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Order" asp-action="Pending">My Orders</a>
-                            </li>
-                        }
                     </ul>
                     <div class="d-flex align-items-center gap-3">
-                        <a asp-controller="Order" asp-action="Cart" class="position-relative cart-icon me-3">
-                            <i class="fas fa-shopping-cart fa-lg"></i>
-                            @{
-                                var cart = Context.Session.GetString("Cart");
-                                var cartCount = 0;
-                                if (!string.IsNullOrEmpty(cart))
-                                {
-                                    var cartItems = System.Text.Json.JsonSerializer.Deserialize<List<dynamic>>(cart);
-                                    cartCount = cartItems?.Count ?? 0;
-                                }
-                            }
-                            @if (cartCount > 0)
-                            {
-                                <span class="cart-badge">@cartCount</span>
-                            }
-                        </a>
                         @if (User.Identity.IsAuthenticated)
                         {
                             <div class="dropdown">
@@ -267,7 +226,6 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My Profile</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Order" asp-action="Pending">My Orders</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post">
