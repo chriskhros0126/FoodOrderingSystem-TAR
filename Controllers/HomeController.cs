@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Data; // Make sure this using directive is included
 using Microsoft.EntityFrameworkCore;
+using FoodOrderingSystem.Attributes;
 
 namespace FoodOrderingSystem.Controllers;
 
+[CustomerLayout]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;

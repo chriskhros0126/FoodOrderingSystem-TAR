@@ -1,0 +1,54 @@
+@model FoodOrderingSystem.Models.Payment
+@{
+    ViewData["Title"] = "Payment Received";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Payment Successful!</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading">Thank you for your payment!</h4>
+                        <p>Your payment has been processed successfully and your order has been confirmed.</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Payment Information</h5>
+                            <p><strong>Order ID:</strong> @Model.OrderId</p>
+                            <p><strong>Payment ID:</strong> @Model.PaymentId</p>
+                            <p><strong>Payment Date:</strong> @Model.PaymentDate.ToString("g")</p>
+                            <p><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Amount</h5>
+                            <p><strong>Total Paid:</strong> @Model.Amount.ToString("C")</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">@Model.PaymentStatus</span></p>
+                            @if (!string.IsNullOrEmpty(Model.CouponCode))
+                            {
+                                <p><strong>Coupon Applied:</strong> @Model.CouponCode</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <p><i class="fas fa-info-circle"></i> Your order has been placed and is being processed. You will receive updates about your order status.</p>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="/" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> Return to Home
+                        </a>
+                        <a href="@Url.Action("Details", "Order", new { id = Model.OrderId })" class="btn btn-outline-success">
+                            <i class="fas fa-receipt"></i> View Order Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

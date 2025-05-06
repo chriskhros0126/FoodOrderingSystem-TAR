@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Create Payment";
+    // Check if the current user is admin or staff
+    bool isAdmin = User.IsInRole("Admin") || User.IsInRole("Staff");
 }
 
 <div class="container">
@@ -10,31 +12,63 @@
 
     <div class="row">
         <div class="col-md-8">
-            <form asp-action="Create">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h5>There were errors with your payment:</h5>
+                    <ul>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form asp-controller="Payment" asp-action="Create" method="post" id="paymentForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="tempOrderId" value="@ViewBag.TempOrderId" />
+                <!-- CouponCode field will be added dynamically via JS when needed -->
                 
                 <div class="form-group mb-3">
-                    <label asp-for="OrderId" class="form-label">Order ID</label>
-                    <input asp-for="OrderId" class="form-control" readonly value="@ViewBag.OrderId" />
-                    <span asp-validation-for="OrderId" class="text-danger"></span>
+                    <label class="form-label">Order Reference</label>
+                    <input type="text" class="form-control" value="@ViewBag.TempOrderId" readonly />
+                    <small class="text-muted">This is a temporary reference until payment is complete</small>
                 </div>
                 
                 <div class="form-group mb-3">
-                    <label asp-for="PaymentMethod" class="form-label">Payment Method</label>
-                    <select asp-for="PaymentMethod" class="form-select">
+                    <label class="form-label">Payment Method</label>
+                    <select name="PaymentMethod" class="form-select" required id="paymentMethodSelect">
                         <option value="">-- Select Payment Method --</option>
                         <option value="Credit Card">Credit Card</option>
                         <option value="PayPal">PayPal</option>
                         <option value="Bank Transfer">Bank Transfer</option>
                         <option value="Cash on Delivery">Cash on Delivery</option>
+                        @if (isAdmin)
+                        {
+                            <option value="Manual Entry">Manual Entry (Admin)</option>
+                        }
                     </select>
-                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                    @if (ViewData.ModelState["PaymentMethod"]?.Errors.Count > 0)
+                    {
+                        <span class="text-danger">@ViewData.ModelState["PaymentMethod"].Errors.First().ErrorMessage</span>
+                    }
+                </div>
+                
+                <!-- Admin notes field for manual entry -->
+                <div class="form-group mb-3" id="manualEntryNotes" style="display: none;">
+                    <label class="form-label">Admin Notes (Optional)</label>
+                    <textarea class="form-control" name="AdminNotes" rows="3" placeholder="Enter details about this manual payment..."></textarea>
+                    <small class="text-muted">Please include the reason for this manual entry and any relevant payment details</small>
                 </div>
                 
                 <div class="form-group mb-3">
-                    <label asp-for="Amount" class="form-label">Amount</label>
-                    <input asp-for="Amount" class="form-control" value="@ViewBag.Amount" />
-                    <span asp-validation-for="Amount" class="text-danger"></span>
+                    <label class="form-label">Amount</label>
+                    <input type="number" name="Amount" class="form-control" value="@ViewBag.PendingOrderTotal" readonly step="0.01" />
+                    @if (ViewData.ModelState["Amount"]?.Errors.Count > 0)
+                    {
+                        <span class="text-danger">@ViewData.ModelState["Amount"].Errors.First().ErrorMessage</span>
+                    }
                 </div>
                 
                 <div class="card mb-3">
@@ -43,9 +77,9 @@
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label for="couponCode" class="form-label">Coupon Code</label>
+                            <label for="couponCodeInput" class="form-label">Coupon Code</label>
                             <div class="input-group">
-                                <input type="text" id="couponCode" name="couponCode" class="form-control" placeholder="Enter coupon code" />
+                                <input type="text" id="couponCodeInput" class="form-control" placeholder="Enter coupon code" />
                                 <button type="button" id="applyCoupon" class="btn btn-outline-primary">Apply</button>
                             </div>
                             <div id="couponMessage" class="form-text mt-2"></div>
@@ -54,8 +88,8 @@
                 </div>
                 
                 <div class="form-group d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">Create Payment</button>
-                    <a href="@Url.Action("Details", "Order", new { id = ViewBag.OrderId })" class="btn btn-outline-secondary">Back to Order</a>
+                    <button type="submit" class="btn btn-primary">Complete Payment</button>
+                    <a href="@Url.Action("Confirmation", "Order")" class="btn btn-outline-secondary">Back to Order</a>
                 </div>
             </form>
         </div>
@@ -66,8 +100,21 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        // Track if a coupon has been applied
+        let appliedCouponCode = '';
+        
+        // Handle showing/hiding manual entry notes for admins
+        document.getElementById('paymentMethodSelect').addEventListener('change', function() {
+            const manualEntryDiv = document.getElementById('manualEntryNotes');
+            if (this.value === 'Manual Entry') {
+                manualEntryDiv.style.display = 'block';
+            } else {
+                manualEntryDiv.style.display = 'none';
+            }
+        });
+        
         document.getElementById('applyCoupon').addEventListener('click', function() {
-            const couponCode = document.getElementById('couponCode').value.trim();
+            const couponCode = document.getElementById('couponCodeInput').value.trim();
             const messageEl = document.getElementById('couponMessage');
             
             if (!couponCode) {
@@ -81,7 +128,7 @@
                 .then(data => {
                     if (data.valid) {
                         // Calculate discount
-                        const amountInput = document.getElementById('Amount');
+                        const amountInput = document.querySelector('input[name="Amount"]');
                         const currentAmount = parseFloat(amountInput.value);
                         const discountAmount = currentAmount * (data.coupon.discountValue / 100);
                         const newAmount = (currentAmount - discountAmount).toFixed(2);
@@ -89,8 +136,8 @@
                         // Update amount
                         amountInput.value = newAmount;
                         
-                        // Set coupon code to hidden input
-                        document.getElementById('CouponCode').value = couponCode;
+                        // Store the applied coupon code
+                        appliedCouponCode = couponCode;
                         
                         messageEl.innerHTML = `<span class="text-success">Coupon applied! You saved $${discountAmount.toFixed(2)}</span>`;
                     } else {
@@ -101,6 +148,17 @@
                     messageEl.innerHTML = '<span class="text-danger">Error validating coupon</span>';
                     console.error('Error:', error);
                 });
+        });
+        
+        // Add the coupon code to the form only when submitting if one was applied
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            if (appliedCouponCode) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'CouponCode';
+                input.value = appliedCouponCode;
+                this.appendChild(input);
+            }
         });
     </script>
 }

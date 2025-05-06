@@ -3,225 +3,392 @@
 @inject UserManager<IdentityUser> UserManager
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<!-- Fixed Transparent Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-transparent fixed-top shadow-none" style="z-index: 1050;">
-    <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold" href="#" style="font-family: 'Playfair Display', serif; font-size: 2rem; color: #2b2b2b;"></a>
-    </div>
-</nav>
-
-@if (!(SignInManager.IsSignedIn(User) && User.IsInRole("Admin")))
-{
-    <!-- Hero Section -->
-    <div class="hero-section d-flex flex-column flex-md-row align-items-center justify-content-start text-start" style="min-height: 100vh; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); background: url('/images/dishes/home-background.jpg') center center/cover no-repeat;">
-         <div class="d-flex flex-column justify-content-center align-items-start flex-grow-1 px-4 ms-md-5 ps-md-5" style="z-index: 2; min-height: 100vh;">
-            <h1 class="display-3 fw-semibold mb-4" style="font-family: 'Playfair Display', serif; color: #fff;">Welcome <br>to Our <br><strong>Food Ordering System.</strong></h1>
-            <p class="mb-4" style="color: #fff; max-width: 500px;">Order your favorite dishes with just a few clicks!</p>
-            <a href="#menu-section" class="btn btn-light btn-lg rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                &rarr;
-            </a>
+<!-- Hero Section -->
+<section class="hero-banner" style="background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('/images/dishes/home-background.jpg') center center/cover no-repeat; height: 90vh; display: flex; align-items: center; color: white; margin-top: -2rem;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 col-md-10 animated fadeInLeft">
+                <h1 class="display-3 fw-bold mb-4">Welcome to <span style="color: var(--primary-color);">The</span><span style="color: var(--secondary-color);">Peak</span></h1>
+                <p class="lead mb-4">Elevate your dining experience with our exquisite cuisine, delivered straight to your doorstep</p>
+                <div class="d-flex gap-3">
+                    <a href="#featured-dishes" class="btn btn-lg" style="background-color: var(--primary-color); color: white;">Explore Menu</a>
+                    @if (!SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-outline-light">Sign Up</a>
+                    }
+                </div>
+            </div>
         </div>
     </div>
-}
+</section>
 
-<div class="container" id="menu-section">
-    <div class="text-center">
-        <h1 class="display-4">Welcome to Our Food Ordering System</h1>
-        <p class="lead">Order your favorite dishes with just a few clicks!</p>
-        
-        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
-        {
-            <div class="mt-4 mb-4">
-                <a asp-controller="Menu" asp-action="Create" class="btn btn-lg btn-success">
-                    <i class="fas fa-plus-circle"></i> Create New Menu Item
-                </a>
+<!-- Services Section -->
+<section class="py-5 animated fadeIn">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4 col-sm-6">
+                <div class="service-card text-center p-4 h-100 shadow-sm rounded-3" style="background-color: white; transition: all 0.3s;">
+                    <div class="icon-box mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: rgba(255, 107, 107, 0.1);">
+                        <i class="fas fa-utensils fa-2x" style="color: var(--primary-color);"></i>
+                    </div>
+                    <h4>Quality Food</h4>
+                    <p class="text-muted">Our chefs prepare every dish with fresh, high-quality ingredients sourced from local farmers.</p>
+                </div>
             </div>
-        }
+            <div class="col-md-4 col-sm-6">
+                <div class="service-card text-center p-4 h-100 shadow-sm rounded-3" style="background-color: white; transition: all 0.3s;">
+                    <div class="icon-box mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: rgba(78, 205, 196, 0.1);">
+                        <i class="fas fa-truck fa-2x" style="color: var(--secondary-color);"></i>
+                    </div>
+                    <h4>Fast Delivery</h4>
+                    <p class="text-muted">Hot and fresh food delivered to your door within 30 minutes or less.</p>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="service-card text-center p-4 h-100 shadow-sm rounded-3" style="background-color: white; transition: all 0.3s;">
+                    <div class="icon-box mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: rgba(41, 47, 54, 0.1);">
+                        <i class="fas fa-credit-card fa-2x" style="color: var(--dark-color);"></i>
+                    </div>
+                    <h4>Easy Payment</h4>
+                    <p class="text-muted">Multiple payment options available for your convenience and security.</p>
+                </div>
+            </div>
+        </div>
     </div>
+</section>
 
-    @if (SignInManager.IsSignedIn(User))
-    {
-        @if (User.IsInRole("Admin"))
-        {
-            <div class="admin-controls mb-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Admin Controls</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a asp-controller="Menu" asp-action="Create" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-plus-circle"></i> Create Menu Item
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a asp-controller="Menu" asp-action="Index" class="btn btn-info btn-lg">
-                                        <i class="fas fa-list"></i> Manage Menu
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a asp-controller="Order" asp-action="Index" class="btn btn-success btn-lg">
-                                        <i class="fas fa-clipboard-list"></i> View Orders
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<!-- Featured Dishes Section -->
+<section id="featured-dishes" class="py-5 bg-light animated fadeIn">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <h2 class="section-title position-relative pb-2 mb-3" style="color: var(--dark-color);">
+                    <span class="position-relative z-index-1">Our Specialty Dishes</span>
+                    <span class="section-title-line position-absolute start-0 bottom-0" style="width: 80px; height: 3px; background-color: var(--primary-color);"></span>
+                </h2>
+                <p class="text-muted mb-0">Discover exquisite flavors crafted by our master chefs</p>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-lg-end align-items-center">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="@Url.Action("Index", new { sortOrder = ViewBag.CurrentSort, category = "" })" 
+                       class="btn @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "btn-primary" : "btn-outline-primary") rounded-pill">
+                        All
+                    </a>
+                    @foreach (var category in ViewBag.Categories)
+                    {
+                        <a href="@Url.Action("Index", new { sortOrder = ViewBag.CurrentSort, category = category })" 
+                           class="btn @(category == ViewBag.CurrentCategory ? "btn-primary" : "btn-outline-primary") rounded-pill">
+                            @category
+                        </a>
+                    }
                 </div>
             </div>
-        }
+        </div>
 
-        <!-- Featured Dishes Section -->
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">Our Menu</h2>
-                    <div class="d-flex gap-3">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="categoryFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-filter"></i> 
-                                @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "All Categories" : ViewBag.CurrentCategory)
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="categoryFilterDropdown">
-                                <li>
-                                    <a class="dropdown-item @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-th-large"></i> All Categories
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Appetizers" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "Appetizers", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-utensils"></i> Appetizers
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Mains" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "Mains", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-drumstick-bite"></i> Main Courses
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Desserts" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "Desserts", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-ice-cream"></i> Desserts
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Beverages" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "Beverages", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-glass-martini-alt"></i> Beverages
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentCategory == "Sides" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { category = "Sides", sortOrder = ViewBag.CurrentSort })">
-                                        <i class="fas fa-carrot"></i> Side Dishes
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="priceFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-sort-amount-down"></i> Sort by Price
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="priceFilterDropdown">
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentSort == "price_asc" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { sortOrder = "price_asc", category = ViewBag.CurrentCategory })">
-                                        Price: Low to High
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item @(ViewBag.CurrentSort == "price_desc" ? "active" : "")" 
-                                       href="@Url.Action("Index", "Home", new { sortOrder = "price_desc", category = ViewBag.CurrentCategory })">
-                                        Price: High to Low
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a asp-controller="Menu" asp-action="Create" class="btn btn-outline-primary">
-                                <i class="fas fa-plus-circle"></i> Add New Dish
-                            </a>
-                        }
-                    </div>
-                </div>
-            </div>
-            @foreach (var dish in ViewBag.FeaturedDishes ?? new List<Dish>())
+        <div class="row g-4">
+            @foreach (var dish in ViewBag.FeaturedDishes)
             {
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 @(dish.IsSpecialToday ? "border-warning" : "")">
-                        @if (dish.IsSpecialToday)
-                        {
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="fas fa-star"></i> Today's Special
-                                </span>
-                            </div>
-                        }
-                        <div class="card-img-container" style="height: 200px; overflow: hidden;">
-                            <img src="@dish.ImageUrl" class="card-img-top" alt="@dish.Name" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">
-                                @dish.Name
-                                @if (dish.IsSpecialToday)
-                                {
-                                    <small class="text-warning">
-                                        <i class="fas fa-star"></i>
-                                    </small>
-                                }
-                            </h5>
-                            <p class="card-text flex-grow-1">@dish.Description</p>
-                            <p class="card-text">
-                                <strong>Price: @dish.Price.ToString("C")</strong>
-                            </p>
-                            <div class="d-grid gap-2 mt-auto">
-                                <a href="@Url.Action("Create", "Order", new { dishId = dish.Id })" class="btn btn-primary">
-                                    Order Now
-                                </a>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <a asp-controller="Menu" asp-action="Edit" asp-route-id="@dish.Id" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                }
+                <div class="col-lg-4 col-md-6">
+                    <div class="menu-item animated fadeInUp" data-wow-delay="0.1s" style="transition: transform 0.3s ease-in-out; cursor: pointer;">
+                        <div class="position-relative">
+                            <div class="card h-100 border-0 rounded-3 shadow-sm overflow-hidden hover-scale">
+                                <div class="position-relative menu-img">
+                                    @if (!string.IsNullOrEmpty(dish.ImageUrl))
+                                    {
+                                        <img src="@dish.ImageUrl" class="card-img-top" alt="@dish.Name" style="height: 220px; object-fit: cover; transition: transform 0.5s;">
+                                    }
+                                    else
+                                    {
+                                        <img src="https://via.placeholder.com/300x220?text=The+Peak" class="card-img-top" alt="@dish.Name" style="height: 220px; object-fit: cover; transition: transform 0.5s;">
+                                    }
+                                    
+                                    <div class="menu-badges position-absolute top-0 start-0 m-3">
+                                        @if (dish.IsSpecialToday)
+                                        {
+                                            <span class="badge bg-danger mb-1 d-block">Chef's Special</span>
+                                        }
+                                        @if (dish.PopularityScore >= 80)
+                                        {
+                                            <span class="badge bg-warning text-dark">Popular</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="card-title mb-0 fw-bold">@dish.Name</h5>
+                                        <span class="menu-price fw-bold" style="color: var(--primary-color);">$@dish.Price.ToString("0.00")</span>
+                                    </div>
+                                    <p class="card-text text-muted small mb-3" style="min-height: 40px;">@(dish.Description?.Length > 90 ? dish.Description.Substring(0, 87) + "..." : dish.Description)</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-light text-dark">@dish.Category</span>
+                                        <a href="@Url.Action("AddToCart", "Order", new { id = dish.Id })" class="btn btn-sm add-to-cart" style="background-color: var(--primary-color); color: white;">
+                                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             }
         </div>
-    }
-    else
-    {
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6 text-center">
-                <p class="lead">Please log in to start ordering.</p>
-                <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
-                    Login Now
-                </a>
-                <p class="mt-3">
-                    Don't have an account? 
-                    <a asp-controller="Account" asp-action="Register">Register here</a>
-                </p>
+        
+        <div class="text-center mt-5">
+            <a href="@Url.Action("Customer", "Menu")" class="btn btn-outline-primary btn-lg rounded-pill">View All Menu <i class="fas fa-arrow-right ms-2"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- Mobile App Section -->
+<section class="py-5 animated fadeIn">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 animated fadeInLeft">
+                <h2 class="section-title position-relative pb-2 mb-4" style="color: var(--dark-color);">
+                    <span class="position-relative z-index-1">Download Our Mobile App</span>
+                    <span class="section-title-line position-absolute start-0 bottom-0" style="width: 80px; height: 3px; background-color: var(--primary-color);"></span>
+                </h2>
+                <p class="mb-4">Get the ThePeak experience on your mobile device. Order your favorite meals, track your delivery, and get exclusive app-only offers.</p>
+                <div class="d-flex gap-3 mb-4">
+                    <a href="#" class="btn btn-dark px-4 py-3 rounded-3">
+                        <i class="fab fa-apple me-2"></i> App Store
+                    </a>
+                    <a href="#" class="btn btn-dark px-4 py-3 rounded-3">
+                        <i class="fab fa-google-play me-2"></i> Google Play
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-center">
+                        <h2 class="mb-0 fw-bold">4.8</h2>
+                        <div style="color: #FFC107;">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="small text-muted">App Rating</span>
+                    </div>
+                    <div class="text-center">
+                        <h2 class="mb-0 fw-bold">10k+</h2>
+                        <span class="small text-muted">Downloads</span>
+                    </div>
+                    <div class="text-center">
+                        <h2 class="mb-0 fw-bold">24/7</h2>
+                        <span class="small text-muted">Support</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center animated fadeInRight">
+                <img src="https://via.placeholder.com/350x650/4ecdc4/ffffff?text=ThePeak+App" alt="Mobile App" class="img-fluid rounded-4 shadow" style="max-height: 600px;">
             </div>
         </div>
-    }
-</div>
+    </div>
+</section>
+
+<!-- Testimonial Section -->
+<section class="py-5 bg-light animated fadeIn">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title position-relative d-inline-block pb-2 mb-3" style="color: var(--dark-color);">
+                <span class="position-relative z-index-1">What Our Customers Say</span>
+                <span class="section-title-line position-absolute start-50 bottom-0 translate-middle-x" style="width: 80px; height: 3px; background-color: var(--primary-color);"></span>
+            </h2>
+            <p class="text-muted">Read testimonials from our satisfied customers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card p-4 rounded-3 shadow-sm bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <img src="https://via.placeholder.com/60/ff6b6b/ffffff?text=J" class="rounded-circle" alt="John">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-0">John Smith</h5>
+                            <div style="color: #FFC107;">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mb-0">"The food from ThePeak is consistently amazing. The delivery is always on time and the packaging keeps everything fresh. Their chicken curry is my absolute favorite!"</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card p-4 rounded-3 shadow-sm bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <img src="https://via.placeholder.com/60/4ecdc4/ffffff?text=S" class="rounded-circle" alt="Sarah">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-0">Sarah Johnson</h5>
+                            <div style="color: #FFC107;">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mb-0">"I love how easy it is to order through the app. The loyalty rewards are great, and I've never had a bad meal from ThePeak. Their customer service is top-notch!"</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card p-4 rounded-3 shadow-sm bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <img src="https://via.placeholder.com/60/292f36/ffffff?text=M" class="rounded-circle" alt="Michael">
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-0">Michael Chen</h5>
+                            <div style="color: #FFC107;">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mb-0">"As someone with dietary restrictions, I appreciate how accommodating ThePeak is. They always get my special requests right, and the food is absolutely delicious!"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 @section Scripts {
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to check if element is in viewport
+            function isInViewport(element) {
+                const rect = element.getBoundingClientRect();
+                return (
+                    rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.bottom >= 0
+                );
+            }
+            
+            // Add animation classes when scrolling
+            function handleScroll() {
+                document.querySelectorAll('.animated').forEach(element => {
+                    if (isInViewport(element) && !element.classList.contains('active')) {
+                        element.classList.add('active');
+                    }
+                });
+            }
+            
+            // Run on load
+            handleScroll();
+            
+            // Add scroll event listener
+            window.addEventListener('scroll', handleScroll);
+            
+            // Add hover effects for menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px)';
+                    this.querySelector('.menu-img img').style.transform = 'scale(1.1)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.querySelector('.menu-img img').style.transform = 'scale(1)';
+                });
+            });
+
+            // Add to cart button effect
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const btnThis = this;
+                    btnThis.innerHTML = '<i class="fas fa-check me-1"></i> Added';
+                    btnThis.classList.add('bg-success');
+                    
+                    setTimeout(function() {
+                        btnThis.innerHTML = '<i class="fas fa-cart-plus me-1"></i> Add to Cart';
+                        btnThis.classList.remove('bg-success');
+                    }, 1500);
+                });
+            });
+        });
+    </script>
+    
+    <style>
+        /* Animation classes */
+        .animated {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .animated.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .fadeInLeft {
+            transform: translateX(-50px);
+        }
+        
+        .fadeInRight {
+            transform: translateX(50px);
+        }
+        
+        .fadeInLeft.active, .fadeInRight.active {
+            transform: translateX(0);
+        }
+        
+        .fadeInUp {
+            transform: translateY(50px);
+        }
+        
+        .fadeInUp.active {
+            transform: translateY(0);
+        }
+        
+        /* Animation delays */
+        [data-wow-delay="0.1s"] {
+            transition-delay: 0.1s;
+        }
+        [data-wow-delay="0.2s"] {
+            transition-delay: 0.2s;
+        }
+        [data-wow-delay="0.3s"] {
+            transition-delay: 0.3s;
+        }
+        
+        /* Hover effects */
+        .hover-scale:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+    </style>
 }

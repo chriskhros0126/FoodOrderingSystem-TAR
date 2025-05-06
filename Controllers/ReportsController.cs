@@ -67,27 +67,18 @@ namespace FoodOrderingSystem.Controllers
             return Json(statistics);
         }
 
-        // New methods for sales analytics
         [HttpGet]
-        public async Task<IActionResult> GetSalesAnalytics(string period = "daily")
+        public async Task<IActionResult> GetSalesAnalytics(string period)
         {
-            DateTime startDate, endDate = DateTime.Today;
-
-            switch (period.ToLower())
+            DateTime fromDate = period switch
             {
-                case "weekly":
-                    startDate = endDate.AddDays(-7);
-                    break;
-                case "monthly":
-                    startDate = endDate.AddMonths(-1);
-                    break;
-                default: // daily
-                    startDate = endDate.AddDays(-1);
-                    break;
-            }
+                "weekly" => DateTime.Today.AddDays(-7),
+                "monthly" => DateTime.Today.AddDays(-30),
+                _ => DateTime.Today // default: daily
+            };
 
-            var salesData = await _context.Orders
-                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+            var sales = await _context.Orders
+                .Where(o => o.OrderDate >= fromDate)
                 .GroupBy(o => o.OrderDate.Date)
                 .Select(g => new
                 {
@@ -95,32 +86,24 @@ namespace FoodOrderingSystem.Controllers
                     TotalSales = g.Sum(o => o.TotalAmount),
                     OrderCount = g.Count()
                 })
-                .OrderBy(d => d.Date)
+                .OrderBy(x => x.Date)
                 .ToListAsync();
 
-            return Json(salesData);
+            return Json(sales);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDishOrderCounts(string period = "daily")
+        public async Task<IActionResult> GetDishOrderCounts(string period)
         {
-            DateTime startDate, endDate = DateTime.Today;
-
-            switch (period.ToLower())
+            DateTime fromDate = period switch
             {
-                case "weekly":
-                    startDate = endDate.AddDays(-7);
-                    break;
-                case "monthly":
-                    startDate = endDate.AddMonths(-1);
-                    break;
-                default: // daily
-                    startDate = endDate.AddDays(-1);
-                    break;
-            }
+                "weekly" => DateTime.Today.AddDays(-7),
+                "monthly" => DateTime.Today.AddDays(-30),
+                _ => DateTime.Today
+            };
 
-            var dishOrderCounts = await _context.OrderItems
-                .Where(oi => oi.Order.OrderDate >= startDate && oi.Order.OrderDate <= endDate)
+            var result = await _context.OrderItems
+                .Where(oi => oi.Order.OrderDate >= fromDate)
                 .GroupBy(oi => oi.Dish.Name)
                 .Select(g => new
                 {
@@ -128,10 +111,10 @@ namespace FoodOrderingSystem.Controllers
                     OrderCount = g.Sum(oi => oi.Quantity),
                     TotalRevenue = g.Sum(oi => oi.Quantity * oi.UnitPrice)
                 })
-                .OrderByDescending(d => d.OrderCount)
+                .OrderByDescending(g => g.OrderCount)
                 .ToListAsync();
 
-            return Json(dishOrderCounts);
+            return Json(result);
         }
 
         [HttpGet]

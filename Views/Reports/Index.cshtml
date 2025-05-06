@@ -4,6 +4,19 @@
 
 <div class="container">
     <h1 class="mb-4">Dish Reports & Statistics</h1>
+    
+    <!-- Add button to seed demo data -->
+    <div class="alert alert-info mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <span>
+                <i class="fas fa-info-circle"></i> 
+                If charts are empty, you may need to seed some demo data.
+            </span>
+            <a href="/Reports/SeedDemoData" class="btn btn-primary btn-sm">
+                <i class="fas fa-database"></i> Seed Demo Data
+            </a>
+        </div>
+    </div>
 
     <div class="row">
         <!-- Sales Analytics Section -->
@@ -21,6 +34,9 @@
                 </div>
                 <div class="card-body">
                     <canvas id="salesChart"></canvas>
+                    <div id="salesNoDataMessage" class="text-center text-muted py-5" style="display: none;">
+                        <p>No sales data available for the selected period.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -40,6 +56,9 @@
                 </div>
                 <div class="card-body">
                     <canvas id="dishOrderChart"></canvas>
+                    <div id="dishOrderNoDataMessage" class="text-center text-muted py-5" style="display: none;">
+                        <p>No order data available for the selected period.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -193,6 +212,18 @@
             try {
                 const response = await fetch(`/Reports/GetSalesAnalytics?period=${period}`);
                 const data = await response.json();
+                
+                const noDataMsg = document.getElementById('salesNoDataMessage');
+                const chartCanvas = document.getElementById('salesChart');
+                
+                if (!data || data.length === 0) {
+                    noDataMsg.style.display = 'block';
+                    chartCanvas.style.display = 'none';
+                    return;
+                }
+                
+                noDataMsg.style.display = 'none';
+                chartCanvas.style.display = 'block';
 
                 if (salesChart) {
                     salesChart.destroy();
@@ -260,6 +291,8 @@
                 });
             } catch (error) {
                 console.error('Error loading sales data:', error);
+                document.getElementById('salesNoDataMessage').style.display = 'block';
+                document.getElementById('salesChart').style.display = 'none';
             }
         }
 
@@ -267,6 +300,18 @@
             try {
                 const response = await fetch(`/Reports/GetDishOrderCounts?period=${period}`);
                 const data = await response.json();
+                
+                const noDataMsg = document.getElementById('dishOrderNoDataMessage');
+                const chartCanvas = document.getElementById('dishOrderChart');
+                
+                if (!data || data.length === 0) {
+                    noDataMsg.style.display = 'block';
+                    chartCanvas.style.display = 'none';
+                    return;
+                }
+                
+                noDataMsg.style.display = 'none';
+                chartCanvas.style.display = 'block';
 
                 if (dishOrderChart) {
                     dishOrderChart.destroy();
@@ -333,6 +378,8 @@
                 });
             } catch (error) {
                 console.error('Error loading dish order counts:', error);
+                document.getElementById('dishOrderNoDataMessage').style.display = 'block';
+                document.getElementById('dishOrderChart').style.display = 'none';
             }
         }
 

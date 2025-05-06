@@ -1,4 +1,4 @@
-@model FoodOrderingSystem.Models.Order
+@model FoodOrderingSystem.Controllers.OrderConfirmationViewModel
 @{
     ViewData["Title"] = "Order Confirmation";
 }
@@ -19,15 +19,14 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <h5>Order Information</h5>
-                            <p><strong>Order ID:</strong> @Model.Id</p>
-                            <p><strong>Order Date:</strong> @Model.OrderDate.ToString("g")</p>
-                            <p><strong>Status:</strong> <span class="badge bg-primary">@Model.Status</span></p>
+                            <p><strong>Order Status:</strong> <span class="badge bg-primary">@Model.Order.Status</span></p>
+                            <p><strong>Order Date:</strong> @Model.Order.OrderDate.ToString("g")</p>
                         </div>
                         <div class="col-md-6">
                             <h5>Delivery Information</h5>
-                            <p><strong>Name:</strong> @Model.CustomerName</p>
-                            <p><strong>Phone:</strong> @Model.CustomerPhone</p>
-                            <p><strong>Address:</strong> @Model.DeliveryAddress</p>
+                            <p><strong>Name:</strong> @Model.Order.CustomerName</p>
+                            <p><strong>Phone:</strong> @Model.Order.CustomerPhone</p>
+                            <p><strong>Address:</strong> @Model.Order.DeliveryAddress</p>
                         </div>
                     </div>
 
@@ -43,10 +42,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.OrderItems)
+                                @foreach (var item in Model.OrderItemDetails)
                                 {
                                     <tr>
-                                        <td>@item.Dish.Name</td>
+                                        <td>@item.DishName</td>
                                         <td>@item.Quantity</td>
                                         <td>@item.UnitPrice.ToString("C")</td>
                                         <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
@@ -56,17 +55,17 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                    <td><strong>@Model.TotalAmount.ToString("C")</strong></td>
+                                    <td><strong>@Model.Order.TotalAmount.ToString("C")</strong></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    @if (!string.IsNullOrEmpty(Model.Order.Notes))
                     {
                         <div class="mt-4">
                             <h5>Special Instructions</h5>
-                            <p>@Model.Notes</p>
+                            <p>@Model.Order.Notes</p>
                         </div>
                     }
 
@@ -74,7 +73,7 @@
                         <a href="/" class="btn btn-outline-primary">
                             <i class="fas fa-arrow-left"></i> Return to Menu
                         </a>
-                        <a href="/Payment/Create" class="btn btn-success">
+                        <a href="@Url.Action("Create", "Payment")" class="btn btn-success">
                             <i class="fas fa-credit-card"></i> Proceed to Payment
                         </a>
                     </div>

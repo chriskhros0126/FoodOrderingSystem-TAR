@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using System.Text.Json;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -48,6 +49,9 @@ namespace FoodOrderingSystem.Controllers
                 return BadRequest("Please select at least one item");
             }
 
+            // Create a temporary order ID
+            var tempOrderId = Guid.NewGuid().ToString();
+
             var order = new Order
             {
                 CustomerName = model.CustomerName,
@@ -70,6 +74,7 @@ namespace FoodOrderingSystem.Controllers
             }
 
             decimal totalAmount = 0;
+            var orderItemDetails = new List<OrderItemDetail>();
 
             foreach (var item in model.OrderItems)
             {
@@ -90,6 +95,16 @@ namespace FoodOrderingSystem.Controllers
                     Quantity = item.Quantity,
                     UnitPrice = dish.Price
                 };
+
+                // Store dish details for confirmation page
+                orderItemDetails.Add(new OrderItemDetail
+                {
+                    OrderItemId = 0, // This will be set later
+                    DishId = dish.Id,
+                    DishName = dish.Name,
+                    UnitPrice = dish.Price,
+                    Quantity = item.Quantity
+                });
 
                 totalAmount += dish.Price * item.Quantity;
                 order.OrderItems.Add(orderItem);
@@ -118,33 +133,47 @@ namespace FoodOrderingSystem.Controllers
 
             try
             {
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-
-                // Notify all connected clients about the new order
-                await _hubContext.Clients.All.SendAsync("NewOrderReceived", order.Id);
-
-                return Json(new { success = true, orderId = order.Id });
+                // Store the order temporarily in TempData
+                TempData["PendingOrder"] = JsonSerializer.Serialize(order);
+                // Store order item details separately
+                TempData["OrderItemDetails"] = JsonSerializer.Serialize(orderItemDetails);
+                // Store the temporary order ID
+                TempData["TempOrderId"] = tempOrderId;
+                
+                return Json(new { success = true, tempOrderId = tempOrderId });
             }
             catch (Exception ex)
             {
-                return BadRequest($"Failed to place order: {ex.Message}");
+                return BadRequest($"Failed to process order: {ex.Message}");
             }
         }
 
-        public async Task<IActionResult> Confirmation(int id)
+        public IActionResult Confirmation()
         {
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Dish)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
-            if (order == null)
+            // Get the pending order from TempData
+            if (TempData["PendingOrder"] == null || TempData["OrderItemDetails"] == null)
             {
-                return NotFound();
+                return RedirectToAction("Index", "Home");
             }
 
-            return View(order);
+            var orderJson = TempData["PendingOrder"].ToString();
+            var orderItemDetailsJson = TempData["OrderItemDetails"].ToString();
+            
+            // Keep the data in TempData for the payment process
+            TempData.Keep("PendingOrder");
+            TempData.Keep("OrderItemDetails");
+            
+            var order = JsonSerializer.Deserialize<Order>(orderJson);
+            var orderItemDetails = JsonSerializer.Deserialize<List<OrderItemDetail>>(orderItemDetailsJson);
+
+            // Create a view model that combines both
+            var viewModel = new OrderConfirmationViewModel
+            {
+                Order = order,
+                OrderItemDetails = orderItemDetails
+            };
+
+            return View(viewModel);
         }
 
         public async Task<IActionResult> GetOrders(OrderStatus? status = null)
@@ -281,5 +310,20 @@ namespace FoodOrderingSystem.Controllers
     {
         public int DishId { get; set; }
         public int Quantity { get; set; }
+    }
+
+    public class OrderItemDetail
+    {
+        public int OrderItemId { get; set; }
+        public int DishId { get; set; }
+        public string DishName { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class OrderConfirmationViewModel
+    {
+        public Order Order { get; set; }
+        public List<OrderItemDetail> OrderItemDetails { get; set; }
     }
 }
