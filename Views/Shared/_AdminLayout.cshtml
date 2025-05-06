@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ThePeak Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1d3557;
+            --light-color: #f8f9fa;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fb;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--dark-color) 0%, var(--secondary-color) 100%);
+            color: #fff;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: var(--accent-color);
+        }
+        
+        .menu-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: all 0.3s;
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+        
+        /* Topbar */
+        .topbar {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .user-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        
+        .user-dropdown .dropdown-toggle img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 25px;
+            height: 100%;
+        }
+        
+        .dashboard-card .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .dashboard-card h5 {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .dashboard-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .primary-card .card-icon {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .success-card .card-icon {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .warning-card .card-icon {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .danger-card .card-icon {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        /* Responsive styles */
+        .responsive-sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        
+        .responsive-sidebar-visible {
+            transform: translateX(0);
+        }
+        
+        .responsive-content-full {
+            margin-left: 0;
+        }
+        
+        /* We'll add these classes via JavaScript for responsive design */
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="@Url.Action("Index", "AdminDashboard")" class="sidebar-brand">
+                The<span style="color: var(--accent-color)">Peak</span> Admin
+            </a>
+        </div>
+        
+        <!-- Menu -->
+        <div class="sidebar-menu">
+            <a href="@Url.Action("Index", "AdminDashboard")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "AdminDashboard" ? "active" : "")">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Order")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Order" ? "active" : "")">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Menu")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Menu" ? "active" : "")">
+                <i class="fas fa-utensils"></i>
+                <span>Menu Management</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Inventory")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Inventory" ? "active" : "")">
+                <i class="fas fa-warehouse"></i>
+                <span>Inventory</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "TableReservation")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "TableReservation" ? "active" : "")">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Reservations</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Rider")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Rider" ? "active" : "")">
+                <i class="fas fa-motorcycle"></i>
+                <span>Riders</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Delivery")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Delivery" ? "active" : "")">
+                <i class="fas fa-truck"></i>
+                <span>Delivery</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Payment")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Payment" ? "active" : "")">
+                <i class="fas fa-credit-card"></i>
+                <span>Payments</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Coupon")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Coupon" ? "active" : "")">
+                <i class="fas fa-tag"></i>
+                <span>Coupons</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Feedback")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Feedback" ? "active" : "")">
+                <i class="fas fa-star"></i>
+                <span>Feedback</span>
+            </a>
+            
+            <a href="@Url.Action("Index", "Reports")" class="menu-item @(ViewContext.RouteData.Values["controller"].ToString() == "Reports" ? "active" : "")">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </a>
+        </div>
+        
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div>
+                <span>@User.Identity.Name</span>
+            </div>
+            <div>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="btn btn-link p-0 text-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Topbar -->
+        <div class="topbar">
+            <button class="toggle-sidebar" id="toggleSidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="d-flex align-items-center">
+                <div class="dropdown user-dropdown">
+                    <button class="dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="d-none d-md-block me-2">
+                            <span class="fw-medium">@User.Identity.Name</span>
+                            <small class="d-block text-muted">Administrator</small>
+                        </div>
+                        <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // Sidebar Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            
+            toggleBtn.addEventListener('click', function() {
+                if (window.innerWidth < 992) {
+                    // On mobile: show/hide sidebar
+                    sidebar.classList.toggle('responsive-sidebar-visible');
+                } else {
+                    // On desktop: collapse/expand
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
+            });
+            
+            // Add responsive behavior based on screen size
+            function applyResponsiveClasses() {
+                if (window.innerWidth < 992) {
+                    sidebar.classList.add('responsive-sidebar-hidden');
+                    mainContent.classList.add('responsive-content-full');
+                } else {
+                    sidebar.classList.remove('responsive-sidebar-hidden');
+                    sidebar.classList.remove('responsive-sidebar-visible');
+                    mainContent.classList.remove('responsive-content-full');
+                }
+            }
+            
+            // Initial application
+            applyResponsiveClasses();
+            
+            // Re-apply on window resize
+            window.addEventListener('resize', applyResponsiveClasses);
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html> 

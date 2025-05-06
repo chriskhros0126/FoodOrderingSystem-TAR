@@ -1,0 +1,272 @@
+@using FoodOrderingSystem.Models
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+        <a href="@Url.Action("Create", "Order")" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50 me-2"></i> New Order
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card primary-card">
+                <div class="card-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h5>Total Orders</h5>
+                <h2>@ViewBag.TotalOrders</h2>
+                <div class="mt-3">
+                    <a href="@Url.Action("Index", "Order")" class="text-decoration-none text-primary">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card warning-card">
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h5>Pending Orders</h5>
+                <h2>@ViewBag.PendingOrders</h2>
+                <div class="mt-3">
+                    <a href="@Url.Action("Pending", "Order")" class="text-decoration-none text-warning">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card success-card">
+                <div class="card-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <h5>Total Revenue</h5>
+                <h2>$@ViewBag.TotalRevenue.ToString("N2")</h2>
+                <div class="mt-3">
+                    <a href="@Url.Action("Index", "Reports")" class="text-decoration-none text-success">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card danger-card">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5>Low Stock Items</h5>
+                <h2>@ViewBag.LowStockItems</h2>
+                <div class="mt-3">
+                    <a href="@Url.Action("LowStock", "Inventory")" class="text-decoration-none text-danger">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h4 class="mb-3">Quick Actions</h4>
+                <div class="row">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Create", "Order")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-cart-plus mb-2 d-block fs-4"></i>
+                            New Order
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Create", "Menu")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-utensils mb-2 d-block fs-4"></i>
+                            Add Menu Item
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Create", "Inventory")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-box mb-2 d-block fs-4"></i>
+                            Add Inventory
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Create", "Coupon")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-tag mb-2 d-block fs-4"></i>
+                            New Coupon
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Index", "Reports")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-chart-bar mb-2 d-block fs-4"></i>
+                            Reports
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="@Url.Action("Index", "Feedback")" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-star mb-2 d-block fs-4"></i>
+                            Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Data -->
+    <div class="row">
+        <!-- Recent Orders -->
+        <div class="col-lg-7 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Recent Orders</h4>
+                    <a href="@Url.Action("Index", "Order")" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.RecentOrders != null && ViewBag.RecentOrders.Count > 0)
+                            {
+                                @foreach (var order in ViewBag.RecentOrders)
+                                {
+                                    <tr>
+                                        <td>@order.Id</td>
+                                        <td>@order.CustomerName</td>
+                                        <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            @{
+                                                string badgeClass = "bg-secondary";
+                                                
+                                                switch (order.Status)
+                                                {
+                                                    case OrderStatus.New:
+                                                    case OrderStatus.Confirmed:
+                                                        badgeClass = "bg-warning";
+                                                        break;
+                                                    case OrderStatus.Delivered:
+                                                        badgeClass = "bg-success";
+                                                        break;
+                                                    case OrderStatus.Cancelled:
+                                                        badgeClass = "bg-danger";
+                                                        break;
+                                                    case OrderStatus.Preparing:
+                                                    case OrderStatus.OutForDelivery:
+                                                    case OrderStatus.InTransit:
+                                                        badgeClass = "bg-info";
+                                                        break;
+                                                }
+                                            }
+                                            <span class="badge @badgeClass">@order.Status</span>
+                                        </td>
+                                        <td>$@order.TotalAmount.ToString("N2")</td>
+                                        <td>
+                                            <a href="@Url.Action("Details", "Order", new { id = order.Id })" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center">No recent orders found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reservations For Today -->
+        <div class="col-lg-5 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Today's Reservations</h4>
+                    <div>
+                        <span class="badge bg-primary">@ViewBag.ReservationsToday Total</span>
+                        <a href="@Url.Action("Index", "TableReservation")" class="btn btn-sm btn-primary ms-2">View All</a>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Time</th>
+                                <th>Guests</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.RecentReservations != null && ViewBag.RecentReservations.Count > 0)
+                            {
+                                bool hasReservationsToday = false;
+                                @foreach (var reservation in ViewBag.RecentReservations)
+                                {
+                                    if (reservation.ReservationDate.Date == DateTime.Today.Date)
+                                    {
+                                        hasReservationsToday = true;
+                                        <tr>
+                                            <td>@reservation.CustomerName</td>
+                                            <td>@reservation.ReservationDate.ToString("h:mm tt")</td>
+                                            <td>@reservation.NumberOfGuests</td>
+                                            <td>
+                                                @{
+                                                    string badgeClass = "bg-secondary";
+                                                    
+                                                    switch (reservation.Status)
+                                                    {
+                                                        case "Confirmed":
+                                                            badgeClass = "bg-success";
+                                                            break;
+                                                        case "Pending":
+                                                            badgeClass = "bg-warning";
+                                                            break;
+                                                        case "Cancelled":
+                                                            badgeClass = "bg-danger";
+                                                            break;
+                                                        case "Completed":
+                                                            badgeClass = "bg-info";
+                                                            break;
+                                                    }
+                                                }
+                                                <span class="badge @badgeClass">@reservation.Status</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                
+                                @if (!hasReservationsToday)
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center">No reservations for today.</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">No reservations found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -39,6 +39,11 @@ namespace FoodOrderingSystem.Controllers
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
                     if (result.Succeeded)
                     {
+                        // Check if user is admin and redirect accordingly
+                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            return RedirectToAction("Index", "AdminDashboard");
+                        }
                         return RedirectToAction("Index", "Home");
                     }
                 }
