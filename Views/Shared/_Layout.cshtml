@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FoodOrderingSystem.styles.css" asp-append-version="true" />
-    <!-- Added Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
@@ -170,6 +169,22 @@
             </div>
         </nav>
     </header>
+
+    <!-- Notification Alert -->
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="alert alert-warning alert-dismissible fade show mb-0 py-2" role="alert" id="stockAlert" style="font-size: 0.9rem; display: none;">
+            <div class="container d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="lowStockMessage"></span>
+                    <a href="@Url.Action("LowStock", "Inventory")" class="alert-link">View details</a>
+                </div>
+                <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -181,9 +196,35 @@
             &copy; 2025 - FoodOrderingSystem - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Check low stock via AJAX if admin
+            if ('@User.IsInRole("Admin")' === 'True') {
+                $.get('@Url.Action("GetLowStockCount", "Inventory")', function(count) {
+                    if (count > 0 && !sessionStorage.getItem('alertDismissed')) {
+                        $('#lowStockMessage').text('You have ' + count + ' low stock item(s). ');
+                        $('#stockAlert').fadeIn();
+
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(function() {
+                            $('#stockAlert').alert('close');
+                        }, 5000);
+                    }
+                });
+            }
+
+            // Handle manual dismissal
+            $('#stockAlert').on('closed.bs.alert', function () {
+                sessionStorage.setItem('alertDismissed', 'true');
+            });
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

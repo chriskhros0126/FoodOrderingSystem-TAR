@@ -19,6 +19,9 @@ namespace FoodOrderingSystem.Controllers
         // GET: Inventory
         public async Task<IActionResult> Index()
         {
+            ViewBag.LowStockCount = await _context.InventoryItems
+                .CountAsync(i => i.CurrentStock <= i.Threshold);
+            ViewBag.LowStockItems = await GetLowStockItemsAsync();
             return View(await _context.InventoryItems.ToListAsync());
         }
 
@@ -180,12 +183,53 @@ namespace FoodOrderingSystem.Controllers
                                         .CountAsync()
             };
 
+            ViewBag.LowStockCount = dashboardData.LowStockItems;
+            ViewBag.LowStockItems = await _context.InventoryItems
+                .Where(i => i.CurrentStock <= i.Threshold)
+                .OrderBy(i => i.CurrentStock)
+                .ToListAsync();
+
             return View(dashboardData);
+        }
+
+        // AJAX endpoint for notification system
+        [HttpGet]
+        public async Task<IActionResult> GetLowStockCount()
+        {
+            var count = await _context.InventoryItems
+                .CountAsync(i => i.CurrentStock <= i.Threshold);
+            return Json(count);
         }
 
         private bool InventoryItemExists(int id)
         {
             return _context.InventoryItems.Any(e => e.Id == id);
+        }
+
+        private async Task<List<InventoryItem>> GetLowStockItemsAsync()
+        {
+            return await _context.InventoryItems
+                .Where(i => i.CurrentStock <= i.Threshold)
+                .OrderBy(i => i.CurrentStock)
+                .ToListAsync();
+        }
+
+        // ViewComponent for notification system
+        public class LowStockNotificationViewComponent : ViewComponent
+        {
+            private readonly AppDbContext _context;
+
+            public LowStockNotificationViewComponent(AppDbContext context)
+            {
+                _context = context;
+            }
+
+            public async Task<IViewComponentResult> InvokeAsync()
+            {
+                var count = await _context.InventoryItems
+                    .CountAsync(i => i.CurrentStock <= i.Threshold);
+                return Content(count.ToString());
+            }
         }
     }
 }
