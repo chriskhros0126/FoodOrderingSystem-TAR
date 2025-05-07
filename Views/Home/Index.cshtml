@@ -108,6 +108,9 @@
                         <a class="nav-link text-white" href="@Url.Action("Create", "TableReservation")">Reservations</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link text-white" href="@Url.Action("Create", "Feedback")">Feedback</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-white" href="#footer-contact">Contact</a>
                     </li>
                 </ul>
@@ -120,9 +123,25 @@
                                 <span>@User.Identity.Name</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                @if (!User.IsInRole("Admin"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Customer" asp-action="Profile">
+                                            <i class="bi bi-person me-2"></i> My Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Customer" asp-action="OrderHistory">
+                                            <i class="bi bi-clock-history me-2"></i> Order History
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                }
                                 <li>
                                     <form asp-controller="Account" asp-action="Logout" method="post">
-                                        <button type="submit" class="dropdown-item">Logout</button>
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
@@ -130,8 +149,8 @@
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light rounded-pill px-4">
-                            Login
+                        <a asp-controller="Account" asp-action="Login" class="nav-link text-white">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Login
                         </a>
                     }
                 </div>
@@ -258,9 +277,18 @@
                                         <p class="card-text text-muted small mb-3" style="min-height: 40px;">@(dish.Description?.Length > 90 ? dish.Description.Substring(0, 87) + "..." : dish.Description)</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-light text-dark">@dish.Category</span>
-                                            <a href="@Url.Action("Create", "Order", new { id = dish.Id })" class="btn btn-sm" style="background-color: var(--primary-color); color: white;">
-                                                View Details
-                                            </a>
+                                            @if (SignInManager.IsSignedIn(User))
+                                            {
+                                                <a href="@Url.Action("Create", "Order", new { id = dish.Id })" class="btn btn-sm" style="background-color: var(--primary-color); color: white;">
+                                                    View Details
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Create", "Order", new { id = dish.Id }) })" class="btn btn-sm" style="background-color: var(--primary-color); color: white;">
+                                                    Login to Order
+                                                </a>
+                                            }
                                         </div>
                                     </div>
                                 </div>
@@ -271,7 +299,14 @@
             </div>
             
             <div class="text-center mt-5">
-                <a href="@Url.Action("Create", "Order")" class="btn btn-outline-primary btn-lg rounded-pill">View All Menu <i class="fas fa-arrow-right ms-2"></i></a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a href="@Url.Action("Create", "Order")" class="btn btn-outline-primary btn-lg rounded-pill">View All Menu <i class="fas fa-arrow-right ms-2"></i></a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Create", "Order") })" class="btn btn-outline-primary btn-lg rounded-pill">Login to Order <i class="fas fa-sign-in-alt ms-2"></i></a>
+                }
             </div>
         </div>
     </section>
@@ -366,6 +401,7 @@
                         <li><a href="@Url.Action("Index", "Home")" class="footer-link">Home</a></li>
                         <li><a href="@Url.Action("Create", "Order")" class="footer-link">Menu</a></li>
                         <li><a href="@Url.Action("Create", "TableReservation")" class="footer-link">Reservations</a></li>
+                        <li><a href="@Url.Action("Create", "Feedback")" class="footer-link">Feedback</a></li>
                         <li><a href="#footer-contact" class="footer-link">Contact</a></li>
                     </ul>
                 </div>

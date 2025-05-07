@@ -23,11 +23,13 @@ namespace FoodOrderingSystem.Data
         // Add the new DbSet for Inventory
         public DbSet<InventoryItem> InventoryItems { get; set; }
         
-        // Added DbSets for Coupon, Feedback, Invoice, and Payment
+        // Added DbSets for Coupon, Invoice, and Payment
         public DbSet<Coupon> Coupons { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        
+        // Add DbSet for Feedback
+        public DbSet<Feedback> Feedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -83,12 +85,6 @@ namespace FoodOrderingSystem.Data
                 .HasPrecision(18, 2);
                 
             // Configure relationships for new entities
-            modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.Order)
-                .WithMany(o => o.Feedbacks)
-                .HasForeignKey(f => f.OrderId)
-                .OnDelete(DeleteBehavior.Restrict);
-                
             modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.Order)
                 .WithMany(o => o.Invoices)
@@ -117,6 +113,8 @@ namespace FoodOrderingSystem.Data
                 .WithMany(c => c.Orders)
                 .HasForeignKey(o => o.CouponId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            // The Feedback-Order relationship has been removed as it's no longer needed
         }
     }
 }

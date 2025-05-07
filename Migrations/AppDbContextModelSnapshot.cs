@@ -149,32 +149,23 @@ namespace FoodOrderingSystem.Migrations
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Feedback", b =>
                 {
-                    b.Property<int>("FeedbackId")
+                    b.Property<int>("FeedbackID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackID"));
 
                     b.Property<string>("Comment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("DateSubmitted")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.HasKey("FeedbackId");
-
-                    b.HasIndex("OrderId");
+                    b.HasKey("FeedbackID");
 
                     b.ToTable("Feedbacks");
                 });
@@ -337,7 +328,7 @@ namespace FoodOrderingSystem.Migrations
 
                     b.Property<string>("CouponCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -690,17 +681,6 @@ namespace FoodOrderingSystem.Migrations
                     b.Navigation("Rider");
                 });
 
-            modelBuilder.Entity("FoodOrderingSystem.Models.Feedback", b =>
-                {
-                    b.HasOne("FoodOrderingSystem.Models.Order", "Order")
-                        .WithMany("Feedbacks")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("FoodOrderingSystem.Models.Invoice", b =>
                 {
                     b.HasOne("FoodOrderingSystem.Models.Order", "Order")
@@ -814,8 +794,6 @@ namespace FoodOrderingSystem.Migrations
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
                 {
-                    b.Navigation("Feedbacks");
-
                     b.Navigation("Invoices");
 
                     b.Navigation("OrderItems");

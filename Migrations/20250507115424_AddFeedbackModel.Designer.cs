@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodOrderingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250505105300_PaymentInvoiceFeedbackCoupon")]
-    partial class PaymentInvoiceFeedbackCoupon
+    [Migration("20250507115424_AddFeedbackModel")]
+    partial class AddFeedbackModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -152,30 +152,26 @@ namespace FoodOrderingSystem.Migrations
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Feedback", b =>
                 {
-                    b.Property<int>("FeedbackId")
+                    b.Property<int>("FeedbackID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeedbackID"));
 
                     b.Property<string>("Comment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("DateSubmitted")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderId")
+                    b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.HasKey("FeedbackId");
+                    b.HasKey("FeedbackID");
 
                     b.HasIndex("OrderId");
 
@@ -340,7 +336,7 @@ namespace FoodOrderingSystem.Migrations
 
                     b.Property<string>("CouponCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -696,10 +692,9 @@ namespace FoodOrderingSystem.Migrations
             modelBuilder.Entity("FoodOrderingSystem.Models.Feedback", b =>
                 {
                     b.HasOne("FoodOrderingSystem.Models.Order", "Order")
-                        .WithMany("Feedbacks")
+                        .WithMany()
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Order");
                 });
@@ -817,8 +812,6 @@ namespace FoodOrderingSystem.Migrations
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
                 {
-                    b.Navigation("Feedbacks");
-
                     b.Navigation("Invoices");
 
                     b.Navigation("OrderItems");

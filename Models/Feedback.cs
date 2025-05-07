@@ -1,16 +1,21 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace FoodOrderingSystem.Models
 {
     public class Feedback
     {
-        public int FeedbackId { get; set; }
-        public int OrderId { get; set; }
-        public int Rating { get; set; }
+        [Key]
+        public int FeedbackID { get; set; }
+        
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Now;
+        
+        [Required]
         public string Comment { get; set; }
-        public DateTime DateSubmitted { get; set; }
-
-        // Navigation property to Order
-        public Order Order { get; set; }
-
-        public string Message { get; set; }
+        
+        [Required]
+        [Range(1, 5)]
+        public int Rating { get; set; }
     }
-}
+} 

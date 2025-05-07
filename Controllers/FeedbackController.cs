@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Models;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -17,62 +17,141 @@ namespace FoodOrderingSystem.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        // GET: Feedback
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Index()
         {
-            var feedbackList = _context.Feedbacks
-                .Include(f => f.Order)
-                .ToList();
-            return View(feedbackList);
+            var feedbacks = await _context.Feedbacks
+                .OrderByDescending(f => f.Date)
+                .ToListAsync();
+            return View(feedbacks);
         }
 
-        public IActionResult Submit(int? orderId)
+        // GET: Feedback/Details/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Details(int id)
         {
-            if (orderId == null)
+            var feedback = await _context.Feedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackID == id);
+                
+            if (feedback == null)
             {
-                return BadRequest("Order ID is required");
+                return NotFound();
             }
 
-            var order = _context.Orders.FirstOrDefault(o => o.Id == orderId);
-            if (order == null)
-            {
-                return NotFound($"Order with ID {orderId} not found");
-            }
-
-            // Check if feedback already exists for this order
-            var existingFeedback = _context.Feedbacks.FirstOrDefault(f => f.OrderId == orderId);
-            if (existingFeedback != null)
-            {
-                TempData["Message"] = "You have already submitted feedback for this order";
-                return RedirectToAction("Details", "Order", new { id = orderId });
-            }
-
-            ViewBag.OrderId = orderId;
-            ViewBag.OrderDetails = order;
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Submit(Feedback feedback)
-        {
-            if (ModelState.IsValid)
-            {
-                feedback.DateSubmitted = DateTime.Now;
-                _context.Feedbacks.Add(feedback);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(ThankYou), new { orderId = feedback.OrderId });
-            }
-            
-            // If model state is invalid, repopulate the ViewBag data
-            var order = await _context.Orders.FindAsync(feedback.OrderId);
-            ViewBag.OrderId = feedback.OrderId;
-            ViewBag.OrderDetails = order;
             return View(feedback);
         }
 
-        public IActionResult ThankYou(int? orderId)
+        // GET: Feedback/Create
+        public IActionResult Create()
         {
-            ViewBag.OrderId = orderId;
             return View();
         }
+
+        // POST: Feedback/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Feedback feedback)
+        {
+            if (ModelState.IsValid)
+            {
+                feedback.Date = DateTime.Now;
+                _context.Add(feedback);
+                await _context.SaveChangesAsync();
+                
+                // Redirect to thank you page for customers
+                if (!User.IsInRole("Admin"))
+                {
+                    return RedirectToAction(nameof(ThankYou));
+                }
+                
+                return RedirectToAction(nameof(Index));
+            }
+            return View(feedback);
+        }
+
+        // GET: Feedback/ThankYou
+        public IActionResult ThankYou()
+        {
+            return View();
+        }
+
+        // GET: Feedback/Edit/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+            return View(feedback);
+        }
+
+        // POST: Feedback/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, Feedback feedback)
+        {
+            if (id != feedback.FeedbackID)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(feedback);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!FeedbackExists(feedback.FeedbackID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(feedback);
+        }
+
+        // GET: Feedback/Delete/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var feedback = await _context.Feedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackID == id);
+                
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+
+            return View(feedback);
+        }
+
+        // POST: Feedback/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            _context.Feedbacks.Remove(feedback);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool FeedbackExists(int id)
+        {
+            return _context.Feedbacks.Any(e => e.FeedbackID == id);
+        }
     }
-}
+} 

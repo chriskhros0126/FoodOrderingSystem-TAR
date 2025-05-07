@@ -1,0 +1,143 @@
+@model FoodOrderingSystem.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+    Layout = "_CustomerLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h4 class="m-0 font-weight-bold text-primary">Order #@Model.Id Details</h4>
+            <a asp-action="OrderHistory" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Order History
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Order Information</h5>
+                    <div class="mb-2">
+                        <strong>Order Date:</strong> @Model.OrderDate.ToString("MMM dd, yyyy HH:mm")
+                    </div>
+                    <div class="mb-2">
+                        <strong>Status:</strong>
+                        @{
+                            var statusClass = Model.Status switch
+                            {
+                                OrderStatus.New => "bg-info",
+                                OrderStatus.Confirmed => "bg-primary",
+                                OrderStatus.Preparing => "bg-warning",
+                                OrderStatus.OutForDelivery => "bg-primary",
+                                OrderStatus.InTransit => "bg-primary",
+                                OrderStatus.Delivered => "bg-success",
+                                OrderStatus.Cancelled => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+                        }
+                        <span class="badge @statusClass">@Model.Status</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mb-2">
+                            <strong>Notes:</strong> @Model.Notes
+                        </div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Delivery Information</h5>
+                    <div class="mb-2">
+                        <strong>Customer:</strong> @Model.CustomerName
+                    </div>
+                    <div class="mb-2">
+                        <strong>Phone:</strong> @Model.CustomerPhone
+                    </div>
+                    <div class="mb-2">
+                        <strong>Address:</strong> @Model.DeliveryAddress
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive mb-4">
+                <h5 class="mb-3">Order Items</h5>
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.OrderItems != null && Model.OrderItems.Any())
+                        {
+                            foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@item.Dish?.Name</div>
+                                        @if (!string.IsNullOrEmpty(item.Dish?.Description))
+                                        {
+                                            <div class="text-muted small">@item.Dish.Description</div>
+                                        }
+                                    </td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">@item.UnitPrice.ToString("C")</td>
+                                    <td class="text-end">@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No items in this order</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        @if (Model.Coupon != null)
+                        {
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                <td class="text-end">
+                                    @{
+                                        decimal originalAmount = Model.TotalAmount / (1 - (Model.Coupon.DiscountValue / 100.0m));
+                                        @originalAmount.ToString("C")
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end">
+                                    Discount (@Model.Coupon.Code - @Model.Coupon.DiscountValue.ToString("F0")%):
+                                </td>
+                                <td class="text-end text-danger">
+                                    -@((originalAmount - Model.TotalAmount).ToString("C"))
+                                </td>
+                            </tr>
+                        }
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Total:</td>
+                            <td class="text-end fw-bold">@Model.TotalAmount.ToString("C")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            @if (Model.Status == OrderStatus.Delivered)
+            {
+                <div class="text-center mb-3">
+                    <a asp-controller="Feedback" asp-action="Create" class="btn btn-outline-primary">
+                        <i class="bi bi-star"></i> Leave Feedback
+                    </a>
+                </div>
+            }
+
+            <div class="text-center">
+                <a asp-controller="Order" asp-action="Create" class="btn btn-success">
+                    <i class="bi bi-cart-plus"></i> Place New Order
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,95 @@
+@model IEnumerable<FoodOrderingSystem.Models.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+    Layout = "_CustomerLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h4 class="m-0 font-weight-bold text-primary">My Order History</h4>
+            <a asp-action="Profile" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Profile
+            </a>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <span>You haven't placed any orders yet.</span>
+                    <div class="mt-3">
+                        <a asp-controller="Order" asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i> Place Your First Order
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>@order.Id</td>
+                                    <td>@order.OrderDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                    <td>
+                                        @if (order.OrderItems != null && order.OrderItems.Any())
+                                        {
+                                            <span>@order.OrderItems.Count() item(s)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No items</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusClass = order.Status switch
+                                            {
+                                                OrderStatus.New => "bg-info",
+                                                OrderStatus.Confirmed => "bg-primary",
+                                                OrderStatus.Preparing => "bg-warning",
+                                                OrderStatus.OutForDelivery => "bg-primary",
+                                                OrderStatus.InTransit => "bg-primary",
+                                                OrderStatus.Delivered => "bg-success",
+                                                OrderStatus.Cancelled => "bg-danger",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">@order.Status</span>
+                                    </td>
+                                    <td>@order.TotalAmount.ToString("C")</td>
+                                    <td>
+                                        <a asp-action="OrderDetails" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a asp-controller="Order" asp-action="Create" class="btn btn-success">
+            <i class="bi bi-cart-plus"></i> Place New Order
+        </a>
+    </div>
+</div> 

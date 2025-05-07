@@ -37,7 +37,6 @@ namespace FoodOrderingSystem.Models
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         
         // Navigation properties for related entities
-        public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     }

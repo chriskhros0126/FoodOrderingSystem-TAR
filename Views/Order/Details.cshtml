@@ -82,49 +82,6 @@
                         </table>
                     </div>
 
-                    @if (Model.Feedbacks != null && Model.Feedbacks.Any())
-                    {
-                        <div class="mt-4">
-                            <h5>Customer Feedback</h5>
-                            <div class="card">
-                                <div class="card-body">
-                                    @foreach (var feedback in Model.Feedbacks)
-                                    {
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between">
-                                                <div>
-                                                    <strong>Rating:</strong>
-                                                    @for (int i = 1; i <= 5; i++)
-                                                    {
-                                                        if (i <= feedback.Rating)
-                                                        {
-                                                            <i class="fas fa-star text-warning"></i>
-                                                        }
-                                                        else
-                                                        {
-                                                            <i class="far fa-star text-warning"></i>
-                                                        }
-                                                    }
-                                                </div>
-                                                <small class="text-muted">@feedback.DateSubmitted.ToString("MMM dd, yyyy")</small>
-                                            </div>
-                                            
-                                            @if (!string.IsNullOrEmpty(feedback.Comment))
-                                            {
-                                                <p class="mt-2">@feedback.Comment</p>
-                                            }
-                                            
-                                            @if (!string.IsNullOrEmpty(feedback.Message))
-                                            {
-                                                <p class="text-muted mt-1">@feedback.Message</p>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-
                     @if (Model.Payments != null && Model.Payments.Any())
                     {
                         <div class="mt-4">
@@ -243,13 +200,6 @@
                         }
                         
                         <div>
-                            @if (Model.Status == FoodOrderingSystem.Models.OrderStatus.Delivered)
-                            {
-                                <a href="/Feedback/Submit?orderId=@Model.Id" class="btn btn-success">
-                                    <i class="fas fa-star"></i> Leave Feedback
-                                </a>
-                            }
-                            
                             <a href="/Invoice/Generate?orderId=@Model.Id" class="btn btn-info">
                                 <i class="fas fa-file-invoice"></i> Generate Invoice
                             </a>

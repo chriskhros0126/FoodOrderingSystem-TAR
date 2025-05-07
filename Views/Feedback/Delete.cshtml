@@ -1,0 +1,60 @@
+@model FoodOrderingSystem.Models.Feedback
+
+@{
+    ViewData["Title"] = "Delete Feedback";
+    Layout = "_AdminLayout";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Are you sure you want to delete this feedback? This action cannot be undone.
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Feedback Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">ID</dt>
+                            <dd class="col-sm-9">@Model.FeedbackID</dd>
+                            
+                            <dt class="col-sm-3">Date</dt>
+                            <dd class="col-sm-9">@Model.Date.ToString("MMMM dd, yyyy")</dd>
+                            
+                            <dt class="col-sm-3">Rating</dt>
+                            <dd class="col-sm-9">
+                                @for (int i = 0; i < Model.Rating; i++)
+                                {
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                }
+                                @for (int i = Model.Rating; i < 5; i++)
+                                {
+                                    <i class="bi bi-star text-muted"></i>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-3">Comment</dt>
+                            <dd class="col-sm-9">@Model.Comment</dd>
+                        </dl>
+                    </div>
+                    
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="FeedbackID" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

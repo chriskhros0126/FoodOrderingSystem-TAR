@@ -1,28 +1,31 @@
 @model FoodOrderingSystem.Models.Feedback
 
 @{
-    ViewData["Title"] = "Submit Feedback";
-    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_CustomerLayout";
+    ViewData["Title"] = "Edit Feedback";
+    Layout = "_AdminLayout";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Submit Your Feedback</h4>
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">Edit Feedback</h4>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
+                        <input type="hidden" asp-for="FeedbackID" />
+                        <input type="hidden" asp-for="Date" />
+                        
                         <div class="mb-3">
                             <label asp-for="Rating" class="form-label">Rating</label>
                             <div class="rating-input">
                                 <div class="btn-group" role="group">
                                     @for (int i = 1; i <= 5; i++)
                                     {
-                                        <input type="radio" class="btn-check" name="Rating" id="rating@(i)" value="@i" autocomplete="off" required>
+                                        <input type="radio" class="btn-check" name="Rating" id="rating@(i)" value="@i" autocomplete="off" 
+                                            @(Model.Rating == i ? "checked" : "")>
                                         <label class="btn btn-outline-warning" for="rating@(i)">
                                             <i class="bi bi-star-fill"></i> @i
                                         </label>
@@ -34,20 +37,13 @@
 
                         <div class="mb-3">
                             <label asp-for="Comment" class="form-label">Your Feedback</label>
-                            <textarea asp-for="Comment" class="form-control" rows="5" placeholder="Please share your experience with us..." required></textarea>
+                            <textarea asp-for="Comment" class="form-control" rows="5"></textarea>
                             <span asp-validation-for="Comment" class="text-danger"></span>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                            }
-                            else
-                            {
-                                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Cancel</a>
-                            }
-                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -58,11 +54,4 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <script>
-        $(document).ready(function() {
-            // Auto select first star
-            $("#rating1").prop("checked", true);
-        });
-    </script>
 } 

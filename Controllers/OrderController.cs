@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -29,6 +30,7 @@ namespace FoodOrderingSystem.Controllers
             return View();
         }
 
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             var dishes = await _context.Dishes.ToListAsync();
@@ -37,6 +39,7 @@ namespace FoodOrderingSystem.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] OrderCreateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -148,6 +151,7 @@ namespace FoodOrderingSystem.Controllers
             }
         }
 
+        [Authorize]
         public IActionResult Confirmation()
         {
             // Get the pending order from TempData
@@ -176,6 +180,7 @@ namespace FoodOrderingSystem.Controllers
             return View(viewModel);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetOrders(OrderStatus? status = null)
         {
             var query = _context.Orders
@@ -192,6 +197,7 @@ namespace FoodOrderingSystem.Controllers
             return PartialView("_OrdersList", orders);
         }
 
+        [Authorize]
         public async Task<IActionResult> UpdateStatus(int id)
         {
             var order = await _context.Orders
@@ -208,6 +214,7 @@ namespace FoodOrderingSystem.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus newStatus)
         {
             var order = await _context.Orders.FindAsync(id);
@@ -229,13 +236,13 @@ namespace FoodOrderingSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public async Task<IActionResult> Details(int id, bool partial = false)
         {
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Dish)
                 .Include(o => o.Coupon)
-                .Include(o => o.Feedbacks)
                 .Include(o => o.Payments)
                 .Include(o => o.Invoices)
                 .FirstOrDefaultAsync(o => o.Id == id);
@@ -253,16 +260,19 @@ namespace FoodOrderingSystem.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Pending()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Delivered()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPendingOrders(OrderStatus? status = null)
         {
             var query = _context.Orders
@@ -279,6 +289,7 @@ namespace FoodOrderingSystem.Controllers
             return PartialView("_OrdersList", orders);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetDeliveredOrders(DateTime? date = null)
         {
             var query = _context.Orders

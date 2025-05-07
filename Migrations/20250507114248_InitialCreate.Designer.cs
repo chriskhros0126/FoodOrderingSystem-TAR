@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodOrderingSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250504110752_AddDeliveriesTable")]
-    partial class AddDeliveriesTable
+    [Migration("20250507114248_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,6 +41,36 @@ namespace FoodOrderingSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ApplicationUsers");
+                });
+
+            modelBuilder.Entity("FoodOrderingSystem.Models.Coupon", b =>
+                {
+                    b.Property<int>("CouponId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CouponId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidUntil")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CouponId");
+
+                    b.ToTable("Coupons");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Delivery", b =>
@@ -158,6 +188,31 @@ namespace FoodOrderingSystem.Migrations
                     b.ToTable("InventoryItems");
                 });
 
+            modelBuilder.Entity("FoodOrderingSystem.Models.Invoice", b =>
+                {
+                    b.Property<int>("InvoiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
+
+                    b.Property<DateTime>("GeneratedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PdfPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InvoiceId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Invoices");
+                });
+
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -165,6 +220,9 @@ namespace FoodOrderingSystem.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CouponId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CustomerName")
                         .IsRequired()
@@ -199,6 +257,8 @@ namespace FoodOrderingSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CouponId");
+
                     b.HasIndex("RiderId");
 
                     b.ToTable("Orders");
@@ -232,6 +292,43 @@ namespace FoodOrderingSystem.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("FoodOrderingSystem.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CouponCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Rider", b =>
@@ -319,8 +416,8 @@ namespace FoodOrderingSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SpecialRequests")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -564,11 +661,29 @@ namespace FoodOrderingSystem.Migrations
                     b.Navigation("Rider");
                 });
 
+            modelBuilder.Entity("FoodOrderingSystem.Models.Invoice", b =>
+                {
+                    b.HasOne("FoodOrderingSystem.Models.Order", "Order")
+                        .WithMany("Invoices")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
                 {
+                    b.HasOne("FoodOrderingSystem.Models.Coupon", "Coupon")
+                        .WithMany("Orders")
+                        .HasForeignKey("CouponId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("FoodOrderingSystem.Models.Rider", null)
                         .WithMany("Orders")
                         .HasForeignKey("RiderId");
+
+                    b.Navigation("Coupon");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.OrderItem", b =>
@@ -586,6 +701,17 @@ namespace FoodOrderingSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Dish");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("FoodOrderingSystem.Models.Payment", b =>
+                {
+                    b.HasOne("FoodOrderingSystem.Models.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Order");
                 });
@@ -641,9 +767,18 @@ namespace FoodOrderingSystem.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FoodOrderingSystem.Models.Coupon", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("FoodOrderingSystem.Models.Order", b =>
                 {
+                    b.Navigation("Invoices");
+
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("FoodOrderingSystem.Models.Rider", b =>

@@ -1,0 +1,58 @@
+@model FoodOrderingSystem.Models.Feedback
+
+@{
+    ViewData["Title"] = "Feedback Details";
+    Layout = "_AdminLayout";
+}
+
+<div class="container mt-5">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Feedback Details</h1>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Feedback #@Model.FeedbackID</h5>
+                <span class="text-muted">@Model.Date.ToString("MMMM dd, yyyy")</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <h5>Rating</h5>
+                <div class="rating-display">
+                    @for (int i = 0; i < Model.Rating; i++)
+                    {
+                        <i class="bi bi-star-fill text-warning fs-4"></i>
+                    }
+                    @for (int i = Model.Rating; i < 5; i++)
+                    {
+                        <i class="bi bi-star text-muted fs-4"></i>
+                    }
+                    <span class="ms-2 fw-bold">@Model.Rating out of 5</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5>Comment</h5>
+                <div class="p-3 bg-light rounded">
+                    @Model.Comment
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.FeedbackID" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.FeedbackID" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 
