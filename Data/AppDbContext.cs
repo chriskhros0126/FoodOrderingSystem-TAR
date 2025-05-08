@@ -19,7 +19,8 @@ namespace FoodOrderingSystem.Data
         public DbSet<Rider> Riders { get; set; }
         public DbSet<TableReservation> TableReservations { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
-
+        public DbSet<DishIngredient> DishIngredients { get; set; }
+        
         // Add the new DbSet for Inventory
         public DbSet<InventoryItem> InventoryItems { get; set; }
         
@@ -83,6 +84,19 @@ namespace FoodOrderingSystem.Data
             modelBuilder.Entity<InventoryItem>()
                 .Property(i => i.CostPerUnit)
                 .HasPrecision(18, 2);
+                
+            // Configure relationships for DishIngredient
+            modelBuilder.Entity<DishIngredient>()
+                .HasOne(di => di.Dish)
+                .WithMany(d => d.DishIngredients)
+                .HasForeignKey(di => di.DishId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DishIngredient>()
+                .HasOne(di => di.InventoryItem)
+                .WithMany(i => i.DishIngredients)
+                .HasForeignKey(di => di.InventoryItemId)
+                .OnDelete(DeleteBehavior.Restrict);
                 
             // Configure relationships for new entities
             modelBuilder.Entity<Invoice>()

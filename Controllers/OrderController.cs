@@ -4,6 +4,8 @@ using FoodOrderingSystem.Models;
 using FoodOrderingSystem.Data;
 using FoodOrderingSystem.Hubs;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -50,6 +52,13 @@ namespace FoodOrderingSystem.Controllers
             if (model.OrderItems == null || !model.OrderItems.Any())
             {
                 return BadRequest("Please select at least one item");
+            }
+
+            // Validate inventory before processing order
+            var (isValid, errorMessage) = await ValidateInventoryForOrder(model);
+            if (!isValid)
+            {
+                return BadRequest(errorMessage);
             }
 
             // Create a temporary order ID
@@ -305,15 +314,161 @@ namespace FoodOrderingSystem.Controllers
             var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
             return PartialView("_OrdersList", orders);
         }
+        
+        private async Task<(bool IsValid, string ErrorMessage)> ValidateInventoryForOrder(OrderCreateViewModel model)
+        {
+            foreach (var item in model.OrderItems)
+            {
+                var dish = await _context.Dishes
+                    .Include(d => d.DishIngredients)
+                    .ThenInclude(di => di.InventoryItem)
+                    .FirstOrDefaultAsync(d => d.Id == item.DishId);
+                    
+                if (dish == null)
+                {
+                    return (false, $"Dish with ID {item.DishId} not found");
+                }
+                
+                // Check if there are enough ingredients in stock
+                foreach (var ingredient in dish.DishIngredients)
+                {
+                    var requiredQuantity = ingredient.QuantityRequired * item.Quantity;
+                    if (ingredient.InventoryItem.CurrentStock < requiredQuantity)
+                    {
+                        return (false, $"Not enough {ingredient.InventoryItem.Name} in stock to fulfill this order");
+                    }
+                }
+            }
+            
+            return (true, string.Empty);
+        }
+        
+        private async Task DeductIngredientsFromInventory(int dishId, int quantity)
+        {
+            var dish = await _context.Dishes
+                .Include(d => d.DishIngredients)
+                .ThenInclude(di => di.InventoryItem)
+                .FirstOrDefaultAsync(d => d.Id == dishId);
+                
+            if (dish == null) return;
+            
+            foreach (var ingredient in dish.DishIngredients)
+            {
+                var inventoryItem = ingredient.InventoryItem;
+                var deductAmount = ingredient.QuantityRequired * quantity;
+                
+                inventoryItem.CurrentStock -= deductAmount;
+                inventoryItem.LastUpdated = DateTime.UtcNow;
+                
+                _context.Update(inventoryItem);
+            }
+            
+            await _context.SaveChangesAsync();
+        }
+        
+        // Method to update inventory after an order is confirmed
+        private async Task UpdateInventoryForOrder(Order order)
+        {
+            foreach (var orderItem in order.OrderItems)
+            {
+                // Get the dish with its ingredients
+                var dish = await _context.Dishes
+                    .Include(d => d.DishIngredients)
+                    .ThenInclude(di => di.InventoryItem)
+                    .FirstOrDefaultAsync(d => d.Id == orderItem.DishId);
+                    
+                if (dish != null)
+                {
+                    foreach (var dishIngredient in dish.DishIngredients)
+                    {
+                        // Calculate how much of this ingredient is used
+                        decimal amountUsed = dishIngredient.QuantityRequired * orderItem.Quantity;
+                        
+                        // Update inventory
+                        var inventoryItem = await _context.InventoryItems.FindAsync(dishIngredient.InventoryItemId);
+                        if (inventoryItem != null)
+                        {
+                            inventoryItem.CurrentStock -= amountUsed;
+                            inventoryItem.LastUpdated = DateTime.UtcNow;
+                            
+                            // Ensure stock doesn't go below zero
+                            if (inventoryItem.CurrentStock < 0)
+                            {
+                                inventoryItem.CurrentStock = 0;
+                            }
+                            
+                            _context.Update(inventoryItem);
+                        }
+                    }
+                }
+            }
+            
+            await _context.SaveChangesAsync();
+        }
+        
+        // Method to finalize the order and update inventory
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinalizeOrder()
+        {
+            // Get the pending order from TempData
+            if (TempData["PendingOrder"] == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var orderJson = TempData["PendingOrder"].ToString();
+            var order = JsonSerializer.Deserialize<Order>(orderJson);
+            
+            // Validate inventory before finalizing
+            var model = new OrderCreateViewModel
+            {
+                OrderItems = order.OrderItems.Select(oi => new OrderItemViewModel 
+                { 
+                    DishId = oi.DishId, 
+                    Quantity = oi.Quantity 
+                }).ToList()
+            };
+            
+            var (isValid, errorMessage) = await ValidateInventoryForOrder(model);
+            if (!isValid)
+            {
+                TempData["ErrorMessage"] = errorMessage;
+                return RedirectToAction("Confirmation");
+            }
+            
+            // Save the order to the database
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            
+            // Update inventory
+            await UpdateInventoryForOrder(order);
+            
+            // Clear TempData
+            TempData.Remove("PendingOrder");
+            TempData.Remove("OrderItemDetails");
+            
+            // Notify connected clients about the new order
+            await _hubContext.Clients.All.SendAsync("NewOrderReceived", order.Id);
+            
+            return RedirectToAction("OrderSuccess", new { id = order.Id });
+        }
+        
+        public IActionResult OrderSuccess(int id)
+        {
+            ViewBag.OrderId = id;
+            return View();
+        }
     }
 
+    // Move these classes outside of the controller class but still within the namespace
     public class OrderCreateViewModel
     {
-        public string CustomerName { get; set; }
-        public string CustomerPhone { get; set; }
-        public string DeliveryAddress { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string DeliveryAddress { get; set; } = string.Empty;
         public string? Notes { get; set; }
-        public List<OrderItemViewModel> OrderItems { get; set; }
+        public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public string? CouponCode { get; set; }
     }
 
@@ -327,14 +482,14 @@ namespace FoodOrderingSystem.Controllers
     {
         public int OrderItemId { get; set; }
         public int DishId { get; set; }
-        public string DishName { get; set; }
+        public string DishName { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
     }
 
     public class OrderConfirmationViewModel
     {
-        public Order Order { get; set; }
-        public List<OrderItemDetail> OrderItemDetails { get; set; }
+        public Order Order { get; set; } = null!;
+        public List<OrderItemDetail> OrderItemDetails { get; set; } = new List<OrderItemDetail>();
     }
 }

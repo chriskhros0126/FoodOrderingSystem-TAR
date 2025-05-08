@@ -56,7 +56,7 @@ namespace FoodOrderingSystem.Migrations
                 {
                     CouponId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     DiscountValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     ValidFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ValidUntil = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -74,17 +74,32 @@ namespace FoodOrderingSystem.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
-                    IsSpecialToday = table.Column<bool>(type: "bit", nullable: false),
-                    PopularityScore = table.Column<int>(type: "int", nullable: false)
+                    PopularityScore = table.Column<int>(type: "int", nullable: false),
+                    IsSpecialToday = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Dishes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Feedbacks",
+                columns: table => new
+                {
+                    FeedbackID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Feedbacks", x => x.FeedbackID);
                 });
 
             migrationBuilder.CreateTable(
@@ -276,6 +291,33 @@ namespace FoodOrderingSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DishIngredients",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DishId = table.Column<int>(type: "int", nullable: false),
+                    InventoryItemId = table.Column<int>(type: "int", nullable: false),
+                    QuantityRequired = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DishIngredients", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DishIngredients_Dishes_DishId",
+                        column: x => x.DishId,
+                        principalTable: "Dishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DishIngredients_InventoryItems_InventoryItemId",
+                        column: x => x.InventoryItemId,
+                        principalTable: "InventoryItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -462,6 +504,16 @@ namespace FoodOrderingSystem.Migrations
                 column: "RiderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DishIngredients_DishId",
+                table: "DishIngredients",
+                column: "DishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DishIngredients_InventoryItemId",
+                table: "DishIngredients",
+                column: "InventoryItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Invoices_OrderId",
                 table: "Invoices",
                 column: "OrderId");
@@ -517,7 +569,10 @@ namespace FoodOrderingSystem.Migrations
                 name: "Deliveries");
 
             migrationBuilder.DropTable(
-                name: "InventoryItems");
+                name: "DishIngredients");
+
+            migrationBuilder.DropTable(
+                name: "Feedbacks");
 
             migrationBuilder.DropTable(
                 name: "Invoices");
@@ -536,6 +591,9 @@ namespace FoodOrderingSystem.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "InventoryItems");
 
             migrationBuilder.DropTable(
                 name: "Dishes");

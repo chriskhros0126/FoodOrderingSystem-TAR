@@ -28,5 +28,7 @@ namespace FoodOrderingSystem.Models
         public decimal CostPerUnit { get; set; }
 
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+
+        public virtual ICollection<DishIngredient> DishIngredients { get; set; } = new List<DishIngredient>();
     }
 }

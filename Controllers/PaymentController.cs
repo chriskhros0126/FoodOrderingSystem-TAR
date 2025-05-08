@@ -192,6 +192,10 @@ namespace FoodOrderingSystem.Controllers
                     }
                     
                     _context.Payments.Add(newPayment);
+                    
+                    // Deduct inventory items for the order
+                    await DeductInventoryForOrder(newOrder);
+                    
                     await _context.SaveChangesAsync();
 
                     // Clear the temporary order data
@@ -277,6 +281,82 @@ namespace FoodOrderingSystem.Controllers
                 return NotFound();
             }
             return View(payment);
+        }
+
+        // Remove this duplicate method
+        // [HttpPost]
+        // public async Task<IActionResult> Create(Payment payment)
+        // {
+        //     if (ModelState.IsValid)
+        //     {
+        //         // Get the order associated with this payment
+        //         var order = await _context.Orders
+        //             .Include(o => o.OrderItems)
+        //             .FirstOrDefaultAsync(o => o.Id == payment.OrderId);
+        //             
+        //         if (order == null)
+        //         {
+        //             return NotFound();
+        //         }
+        //         
+        //         // Set payment details
+        //         payment.PaymentDate = DateTime.Now;
+        //         payment.Status = PaymentStatus.Completed;
+        //         
+        //         // Add payment to database
+        //         _context.Payments.Add(payment);
+        //         
+        //         // Update order status
+        //         order.Status = OrderStatus.Confirmed;
+        //         _context.Orders.Update(order);
+        //         
+        //         // Deduct inventory items
+        //         await DeductInventoryForOrder(order);
+        //         
+        //         await _context.SaveChangesAsync();
+        //         
+        //         return RedirectToAction("Success", new { id = payment.Id });
+        //     }
+        //     
+        //     return View(payment);
+        // }
+
+        // Method to deduct inventory after payment is completed
+        private async Task DeductInventoryForOrder(Order order)
+        {
+            foreach (var orderItem in order.OrderItems)
+            {
+                // Get the dish with its ingredients
+                var dish = await _context.Dishes
+                    .Include(d => d.DishIngredients)
+                    .ThenInclude(di => di.InventoryItem)
+                    .FirstOrDefaultAsync(d => d.Id == orderItem.DishId);
+                    
+                if (dish != null)
+                {
+                    foreach (var dishIngredient in dish.DishIngredients)
+                    {
+                        // Calculate how much of this ingredient is used
+                        decimal amountUsed = dishIngredient.QuantityRequired * orderItem.Quantity;
+                        
+                        // Update inventory
+                        var inventoryItem = await _context.InventoryItems.FindAsync(dishIngredient.InventoryItemId);
+                        if (inventoryItem != null)
+                        {
+                            inventoryItem.CurrentStock -= amountUsed;
+                            inventoryItem.LastUpdated = DateTime.UtcNow;
+                            
+                            // Ensure stock doesn't go below zero
+                            if (inventoryItem.CurrentStock < 0)
+                            {
+                                inventoryItem.CurrentStock = 0;
+                            }
+                            
+                            _context.Update(inventoryItem);
+                        }
+                    }
+                }
+            }
         }
     }
 }

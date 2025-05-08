@@ -10,6 +10,8 @@ using CsvHelper;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using FoodOrderingSystem.Models.ViewModels;
 
 namespace FoodOrderingSystem.Controllers
 {
@@ -280,5 +282,94 @@ namespace FoodOrderingSystem.Controllers
                 return File(bytes, "text/csv", "sample-dishes.csv");
             }
         }
+
+        // GET: Menu/ManageIngredients/5
+        public async Task<IActionResult> ManageIngredients(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var dish = await _context.Dishes
+                .Include(d => d.DishIngredients)
+                .ThenInclude(di => di.InventoryItem)
+                .FirstOrDefaultAsync(d => d.Id == id);
+                
+            if (dish == null)
+            {
+                return NotFound();
+            }
+
+            // Get all available inventory items
+            var availableIngredients = await _context.InventoryItems.ToListAsync();
+            
+            var viewModel = new DishIngredientsViewModel
+            {
+                DishId = dish.Id,
+                DishName = dish.Name,
+                CurrentIngredients = dish.DishIngredients.ToList(),
+                AvailableIngredients = availableIngredients
+            };
+            
+            return View(viewModel);
+        }
+
+        // POST: Menu/AddIngredient
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddIngredient(DishIngredientViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if this ingredient is already added to the dish
+                var existingIngredient = await _context.DishIngredients
+                    .FirstOrDefaultAsync(di => di.DishId == model.DishId && di.InventoryItemId == model.InventoryItemId);
+                    
+                if (existingIngredient != null)
+                {
+                    // Update the quantity if it already exists
+                    existingIngredient.QuantityRequired = model.QuantityRequired;
+                    _context.Update(existingIngredient);
+                }
+                else
+                {
+                    // Add new ingredient to the dish
+                    var dishIngredient = new DishIngredient
+                    {
+                        DishId = model.DishId,
+                        InventoryItemId = model.InventoryItemId,
+                        QuantityRequired = model.QuantityRequired
+                    };
+                    
+                    _context.DishIngredients.Add(dishIngredient);
+                }
+                
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(ManageIngredients), new { id = model.DishId });
+            }
+            
+            // If we got this far, something failed, redisplay form
+            return RedirectToAction(nameof(ManageIngredients), new { id = model.DishId });
+        }
+        
+        // POST: Menu/RemoveIngredient
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveIngredient(int dishId, int ingredientId)
+        {
+            var dishIngredient = await _context.DishIngredients
+                .FirstOrDefaultAsync(di => di.DishId == dishId && di.InventoryItemId == ingredientId);
+                
+            if (dishIngredient != null)
+            {
+                _context.DishIngredients.Remove(dishIngredient);
+                await _context.SaveChangesAsync();
+            }
+            
+            return RedirectToAction(nameof(ManageIngredients), new { id = dishId });
+        }
     }
 }
+
+
