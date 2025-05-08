@@ -1,0 +1,663 @@
+@{
+    ViewData["Title"] = "Dish Popularity";
+}
+
+<div class="container">
+    <h1 class="mb-4">Dish Popularity Analysis</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                This page shows dish popularity based on order counts and popularity scores. Popularity score is calculated as the percentage of a dish's orders relative to total orders (dish order / all dishes total orders × 100%). The interactive charts help visualize which dishes are most popular with customers.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Controls Section -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <div class="me-auto">
+                            <h5 class="mb-0">Dish Popularity</h5>
+                        </div>
+                        
+                        <!-- View Type Selection -->
+                        <div>
+                            <label class="me-2">View Type:</label>
+                            <div class="btn-group" role="group" id="viewTypeGroup">
+                                <input type="radio" class="btn-check" name="viewType" id="viewTypeOrders" value="orders" checked>
+                                <label class="btn btn-outline-primary" for="viewTypeOrders">By Orders</label>
+                                
+                                <input type="radio" class="btn-check" name="viewType" id="viewTypeScore" value="score">
+                                <label class="btn btn-outline-primary" for="viewTypeScore">By Score</label>
+                                
+                                <input type="radio" class="btn-check" name="viewType" id="viewTypeCategory" value="category">
+                                <label class="btn btn-outline-primary" for="viewTypeCategory">By Category</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Type Selection -->
+                        <div>
+                            <label class="me-2">Chart Type:</label>
+                            <div class="btn-group" role="group" id="chartTypeGroup">
+                                <input type="radio" class="btn-check" name="chartType" id="chartTypePie" value="pie" checked>
+                                <label class="btn btn-outline-secondary" for="chartTypePie">Pie</label>
+                                
+                                <input type="radio" class="btn-check" name="chartType" id="chartTypeBar" value="bar">
+                                <label class="btn btn-outline-secondary" for="chartTypeBar">Bar</label>
+                                
+                                <input type="radio" class="btn-check" name="chartType" id="chartTypeDoughnut" value="doughnut">
+                                <label class="btn btn-outline-secondary" for="chartTypeDoughnut">Doughnut</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Display Limit Selection -->
+                        <div>
+                            <label class="me-2">Top Items:</label>
+                            <select class="form-select" id="displayLimit">
+                                <option value="5">Top 5</option>
+                                <option value="10" selected>Top 10</option>
+                                <option value="15">Top 15</option>
+                                <option value="20">Top 20</option>
+                                <option value="0">All</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Cards Row -->
+    <div class="row mb-4" id="summaryCards">
+        <div class="col-md-3">
+            <div class="card dashboard-card primary-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h5>Top Dish</h5>
+                    <h2 id="topDishCard">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card success-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h5>Total Orders</h5>
+                    <h2 id="totalOrdersCard">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card warning-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <h5>Top Category</h5>
+                    <h2 id="topCategoryCard">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card danger-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Avg Popularity</h5>
+                    <h2 id="avgPopularityCard">0%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="chartTitle">Dish Popularity by Orders</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height:400px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                    <div id="noDataMessage" class="text-center text-muted py-5" style="display: none;">
+                        <p>No data available. Try seeding some demo data.</p>
+                        <a href="@Url.Action("SeedDemoData", "Reports")" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-database"></i> Seed Demo Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Detailed Dish Popularity Data</h5>
+                        <div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search dishes..." id="dishSearchInput">
+                                <button class="btn btn-outline-secondary" type="button" id="dishSearchButton">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="name">Dish Name <i class="fas fa-sort"></i></th>
+                                    <th class="sortable" data-sort="category">Category <i class="fas fa-sort"></i></th>
+                                    <th class="sortable" data-sort="orders">Order Count <i class="fas fa-sort"></i></th>
+                                    <th class="sortable" data-sort="popularity">Popularity Score (% of Total) <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dishTableBody">
+                                @foreach (var dish in ViewBag.DishesWithOrders)
+                                {
+                                    <tr>
+                                        <td>@dish.Name</td>
+                                        <td>@dish.Category</td>
+                                        <td>@dish.OrderCount</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar" role="progressbar" style="width: @(dish.PopularityScore)%;" 
+                                                     aria-valuenow="@dish.PopularityScore" aria-valuemin="0" aria-valuemax="100">
+                                                    @dish.PopularityScore%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-4">
+        <a href="@Url.Action("SeedDemoData", "Reports")" class="btn btn-outline-success">
+            <i class="fas fa-database"></i> Seed Demo Data
+        </a>
+        <a href="@Url.Action("SalesAnalytics", "Reports")" class="btn btn-outline-info">
+            <i class="fas fa-dollar-sign"></i> View Sales Analytics
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Define color palette for charts
+        const colors = {
+            primary: 'rgba(67, 97, 238, 0.7)',
+            primaryBorder: 'rgba(67, 97, 238, 1)',
+            secondary: 'rgba(63, 55, 201, 0.7)',
+            secondaryBorder: 'rgba(63, 55, 201, 1)',
+            success: 'rgba(46, 204, 113, 0.7)',
+            successBorder: 'rgba(46, 204, 113, 1)',
+            warning: 'rgba(243, 156, 18, 0.7)',
+            warningBorder: 'rgba(243, 156, 18, 1)',
+            danger: 'rgba(231, 76, 60, 0.7)',
+            dangerBorder: 'rgba(231, 76, 60, 1)',
+            info: 'rgba(76, 201, 240, 0.7)',
+            infoBorder: 'rgba(76, 201, 240, 1)'
+        };
+        
+        // Palette for multiple categories/items
+        const colorPalette = [
+            colors.primary,
+            'rgba(231, 76, 60, 0.7)',
+            'rgba(46, 204, 113, 0.7)',
+            'rgba(243, 156, 18, 0.7)',
+            'rgba(76, 201, 240, 0.7)',
+            'rgba(155, 89, 182, 0.7)',
+            'rgba(52, 152, 219, 0.7)',
+            'rgba(149, 165, 166, 0.7)',
+            'rgba(241, 196, 15, 0.7)',
+            'rgba(230, 126, 34, 0.7)'
+        ];
+        
+        const borderColorPalette = [
+            colors.primaryBorder,
+            'rgba(231, 76, 60, 1)',
+            'rgba(46, 204, 113, 1)',
+            'rgba(243, 156, 18, 1)',
+            'rgba(76, 201, 240, 1)',
+            'rgba(155, 89, 182, 1)',
+            'rgba(52, 152, 219, 1)',
+            'rgba(149, 165, 166, 1)',
+            'rgba(241, 196, 15, 1)',
+            'rgba(230, 126, 34, 1)'
+        ];
+        
+        // Control variables
+        let mainChart = null;
+        let dishData = null;
+        let currentViewType = 'orders';
+        let currentChartType = 'pie';
+        let currentLimit = 10;
+        let currentSortField = 'orders';
+        let currentSortDirection = 'desc';
+        let searchTerm = '';
+        
+        // Load data and initialize charts
+        async function loadDishPopularityData() {
+            try {
+                document.getElementById('mainChart').style.opacity = '0.5';
+                
+                const response = await fetch('/Reports/GetDishPopularityData');
+                dishData = await response.json();
+                
+                if (dishData && dishData.length > 0) {
+                    // Calculate total orders
+                    const totalOrders = dishData.reduce((sum, dish) => sum + dish.orderCount, 0);
+                    
+                    // Calculate popularity scores
+                    dishData.forEach(dish => {
+                        dish.popularityScore = Math.round((dish.orderCount / totalOrders) * 100);
+                    });
+                    
+                    document.getElementById('noDataMessage').style.display = 'none';
+                    document.getElementById('mainChart').style.display = 'block';
+                    document.getElementById('mainChart').style.opacity = '1';
+                    
+                    updateSummaryCards(dishData);
+                    updateMainChart();
+                    updateDataTable();
+                } else {
+                    document.getElementById('noDataMessage').style.display = 'block';
+                    document.getElementById('mainChart').style.display = 'none';
+                    updateSummaryCards(null);
+                }
+            } catch (error) {
+                console.error('Error loading dish popularity data:', error);
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('mainChart').style.display = 'none';
+            }
+        }
+        
+        // Update summary cards with dish data
+        function updateSummaryCards(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('topDishCard').textContent = '-';
+                document.getElementById('totalOrdersCard').textContent = '0';
+                document.getElementById('topCategoryCard').textContent = '-';
+                document.getElementById('avgPopularityCard').textContent = '0%';
+                return;
+            }
+            
+            // Get the top dish by order count
+            const topDishByOrders = [...data].sort((a, b) => b.orderCount - a.orderCount)[0];
+            document.getElementById('topDishCard').textContent = topDishByOrders.name;
+            
+            // Calculate total orders
+            const totalOrders = data.reduce((sum, dish) => sum + dish.orderCount, 0);
+            document.getElementById('totalOrdersCard').textContent = totalOrders;
+            
+            // Find top category
+            const categoryData = {};
+            data.forEach(dish => {
+                if (!categoryData[dish.category]) {
+                    categoryData[dish.category] = {
+                        orderCount: 0,
+                        dishes: []
+                    };
+                }
+                categoryData[dish.category].orderCount += dish.orderCount;
+                categoryData[dish.category].dishes.push(dish);
+            });
+            
+            const sortedCategories = Object.keys(categoryData).sort(
+                (a, b) => categoryData[b].orderCount - categoryData[a].orderCount
+            );
+            
+            if (sortedCategories.length > 0) {
+                document.getElementById('topCategoryCard').textContent = sortedCategories[0];
+            }
+            
+            // Calculate average popularity score
+            const avgPopularity = data.reduce((sum, dish) => sum + dish.popularityScore, 0) / data.length;
+            document.getElementById('avgPopularityCard').textContent = `${Math.round(avgPopularity)}%`;
+        }
+        
+        // Update the main chart based on current settings
+        function updateMainChart() {
+            if (!dishData || dishData.length === 0) return;
+            
+            // Filter data
+            let filteredData = [...dishData];
+            
+            if (searchTerm.trim() !== '') {
+                filteredData = filteredData.filter(d => 
+                    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    d.category.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Sort data based on view type
+            if (currentViewType === 'orders') {
+                filteredData.sort((a, b) => b.orderCount - a.orderCount);
+            } else if (currentViewType === 'score') {
+                filteredData.sort((a, b) => b.popularityScore - a.popularityScore);
+            }
+            
+            // Apply limit
+            let displayData = filteredData;
+            if (currentLimit > 0) {
+                displayData = filteredData.slice(0, currentLimit);
+            }
+            
+            let chartData = {};
+            let chartOptions = {};
+            
+            if (currentViewType === 'orders' || currentViewType === 'score') {
+                // Dish-based view (orders or popularity score)
+                const fieldToUse = currentViewType === 'orders' ? 'orderCount' : 'popularityScore';
+                const yAxisLabel = currentViewType === 'orders' ? 'Order Count' : 'Popularity Score';
+                
+                document.getElementById('chartTitle').textContent = currentViewType === 'orders' 
+                    ? `Dish Popularity by Orders (${currentChartType})`
+                    : `Dish Popularity by Score - % of Total Orders (${currentChartType})`;
+                
+                chartData = {
+                    labels: displayData.map(d => d.name),
+                    datasets: [{
+                        label: currentViewType === 'orders' ? 'Order Count' : 'Popularity Score',
+                        data: displayData.map(d => d[fieldToUse]),
+                        backgroundColor: colorPalette.slice(0, displayData.length),
+                        borderColor: borderColorPalette.slice(0, displayData.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: currentChartType === 'bar' ? 'top' : 'right',
+                            display: currentChartType !== 'bar',
+                            labels: {
+                                boxWidth: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    
+                                    if (currentViewType === 'orders') {
+                                        const total = displayData.reduce((acc, curr) => acc + curr.orderCount, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} orders (${percentage}%)`;
+                                    } else {
+                                        return `${label}: ${value}% of total orders`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            display: currentChartType === 'bar',
+                            title: {
+                                display: currentChartType === 'bar',
+                                text: yAxisLabel
+                            }
+                        }
+                    }
+                };
+            } else if (currentViewType === 'category') {
+                // Category-based view
+                document.getElementById('chartTitle').textContent = `Dish Popularity by Category (${currentChartType})`;
+                
+                // Group by category
+                const categoryData = {};
+                filteredData.forEach(dish => {
+                    if (!categoryData[dish.category]) {
+                        categoryData[dish.category] = {
+                            orderCount: 0,
+                            popularityScore: 0,
+                            dishCount: 0
+                        };
+                    }
+                    categoryData[dish.category].orderCount += dish.orderCount;
+                    categoryData[dish.category].popularityScore += dish.popularityScore;
+                    categoryData[dish.category].dishCount++;
+                });
+                
+                // Sort categories by order count
+                const sortedCategories = Object.keys(categoryData).sort(
+                    (a, b) => categoryData[b].orderCount - categoryData[a].orderCount
+                );
+                
+                // Apply limit if needed
+                const displayCategories = currentLimit > 0 ? sortedCategories.slice(0, currentLimit) : sortedCategories;
+                
+                chartData = {
+                    labels: displayCategories,
+                    datasets: [{
+                        label: 'Orders by Category',
+                        data: displayCategories.map(c => categoryData[c].orderCount),
+                        backgroundColor: colorPalette.slice(0, displayCategories.length),
+                        borderColor: borderColorPalette.slice(0, displayCategories.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: currentChartType === 'bar' ? 'top' : 'right',
+                            display: currentChartType !== 'bar',
+                            labels: {
+                                boxWidth: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const category = context.label;
+                                    const value = context.raw;
+                                    const dishCount = categoryData[category].dishCount;
+                                    const avgScore = Math.round(categoryData[category].popularityScore / dishCount);
+                                    
+                                    const total = displayCategories.reduce((acc, curr) => acc + categoryData[curr].orderCount, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    
+                                    return [
+                                        `Orders: ${value} (${percentage}%)`, 
+                                        `Dishes: ${dishCount}`,
+                                        `Avg Score: ${avgScore}%`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            display: currentChartType === 'bar',
+                            title: {
+                                display: currentChartType === 'bar',
+                                text: 'Order Count'
+                            }
+                        }
+                    }
+                };
+            }
+            
+            // Create or update chart
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            mainChart = new Chart(ctx, {
+                type: currentChartType,
+                data: chartData,
+                options: chartOptions
+            });
+        }
+        
+        // Update data table
+        function updateDataTable() {
+            if (!dishData || dishData.length === 0) return;
+            
+            // Filter data
+            let filteredData = [...dishData];
+            
+            if (searchTerm.trim() !== '') {
+                filteredData = filteredData.filter(d => 
+                    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    d.category.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Sort data
+            filteredData.sort((a, b) => {
+                let result = 0;
+                
+                switch (currentSortField) {
+                    case 'name':
+                        result = a.name.localeCompare(b.name);
+                        break;
+                    case 'category':
+                        result = a.category.localeCompare(b.category);
+                        break;
+                    case 'orders':
+                        result = a.orderCount - b.orderCount;
+                        break;
+                    case 'popularity':
+                        result = a.popularityScore - b.popularityScore;
+                        break;
+                    default:
+                        result = 0;
+                }
+                
+                return currentSortDirection === 'asc' ? result : -result;
+            });
+            
+            // Generate table rows
+            const tableBody = document.getElementById('dishTableBody');
+            tableBody.innerHTML = '';
+            
+            filteredData.forEach(dish => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dish.name}</td>
+                    <td>${dish.category}</td>
+                    <td>${dish.orderCount}</td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${dish.popularityScore}%;" 
+                                aria-valuenow="${dish.popularityScore}" aria-valuemin="0" aria-valuemax="100">
+                                ${dish.popularityScore}%
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // View Type radio buttons
+            document.querySelectorAll('input[name="viewType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentViewType = this.value;
+                    updateMainChart();
+                });
+            });
+            
+            // Chart Type radio buttons
+            document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentChartType = this.value;
+                    updateMainChart();
+                });
+            });
+            
+            // Display Limit selection
+            document.getElementById('displayLimit').addEventListener('change', function() {
+                currentLimit = parseInt(this.value);
+                updateMainChart();
+            });
+            
+            // Table sorting
+            document.querySelectorAll('.sortable').forEach(header => {
+                header.addEventListener('click', function() {
+                    const field = this.dataset.sort;
+                    
+                    if (currentSortField === field) {
+                        // Toggle direction
+                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // New field, default to descending
+                        currentSortField = field;
+                        currentSortDirection = 'desc';
+                    }
+                    
+                    // Update UI to show sort direction
+                    document.querySelectorAll('.sortable').forEach(h => {
+                        const icon = h.querySelector('i');
+                        if (h.dataset.sort === currentSortField) {
+                            icon.className = currentSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                        } else {
+                            icon.className = 'fas fa-sort';
+                        }
+                    });
+                    
+                    updateDataTable();
+                });
+            });
+            
+            // Search functionality
+            document.getElementById('dishSearchButton').addEventListener('click', function() {
+                searchTerm = document.getElementById('dishSearchInput').value;
+                updateMainChart();
+                updateDataTable();
+            });
+            
+            document.getElementById('dishSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchTerm = this.value;
+                    updateMainChart();
+                    updateDataTable();
+                }
+            });
+        }
+        
+        // Initialize everything when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDishPopularityData();
+            setupEventListeners();
+        });
+    </script>
+} 

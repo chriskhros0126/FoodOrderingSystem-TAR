@@ -20,19 +20,122 @@ namespace FoodOrderingSystem.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var dishes = await _context.Dishes
+            // Redirect to DishPopularity instead
+            return RedirectToAction("DishPopularity");
+        }
+
+        public async Task<IActionResult> DishPopularity()
+        {
+            // Get dishes with their order counts
+            var dishesWithOrders = await _context.Dishes
                 .Select(d => new
                 {
                     d.Id,
                     d.Name,
+                    d.Category,
                     d.PopularityScore,
-                    d.IsAvailable,
-                    d.Category
+                    OrderCount = _context.OrderItems.Where(oi => oi.DishId == d.Id).Sum(oi => oi.Quantity)
                 })
+                .OrderByDescending(d => d.OrderCount)
                 .ToListAsync();
 
-            ViewBag.DishData = dishes;
+            // Pass the data to the view
+            ViewBag.DishesWithOrders = dishesWithOrders;
+            
             return View();
+        }
+
+        public IActionResult SalesAnalytics()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDetailedSalesAnalytics(string period = "daily", string groupBy = "date")
+        {
+            // Define date range based on period
+            DateTime fromDate = period switch
+            {
+                "weekly" => DateTime.Today.AddDays(-7),
+                "monthly" => DateTime.Today.AddDays(-30),
+                "yearly" => DateTime.Today.AddDays(-365),
+                _ => DateTime.Today.AddDays(-1) // default: daily (last 24 hours)
+            };
+            
+            // Base query to get orders within the specified period
+            var ordersQuery = _context.Orders
+                .Where(o => o.OrderDate >= fromDate)
+                .AsQueryable();
+                
+            // Group and aggregate data based on the specified grouping
+            if (groupBy == "category")
+            {
+                // Group by dish category
+                var categorySales = await _context.OrderItems
+                    .Where(oi => oi.Order.OrderDate >= fromDate)
+                    .Join(_context.Dishes, oi => oi.DishId, d => d.Id, (oi, d) => new { OrderItem = oi, Dish = d })
+                    .GroupBy(x => x.Dish.Category)
+                    .Select(g => new
+                    {
+                        Category = g.Key,
+                        OrderCount = g.Count(),
+                        TotalSales = g.Sum(x => x.OrderItem.Quantity * x.OrderItem.UnitPrice),
+                        ItemCount = g.Sum(x => x.OrderItem.Quantity)
+                    })
+                    .OrderByDescending(x => x.TotalSales)
+                    .ToListAsync();
+                    
+                return Json(categorySales);
+            }
+            else if (groupBy == "payment")
+            {
+                // Group by payment method
+                var paymentSales = await _context.Payments
+                    .Where(p => p.PaymentDate >= fromDate)
+                    .GroupBy(p => p.PaymentMethod)
+                    .Select(g => new
+                    {
+                        PaymentMethod = g.Key,
+                        OrderCount = g.Count(),
+                        TotalSales = g.Sum(p => p.Amount)
+                    })
+                    .OrderByDescending(x => x.TotalSales)
+                    .ToListAsync();
+                    
+                return Json(paymentSales);
+            }
+            else
+            {
+                // Default: Group by date
+                var dateFormat = period switch
+                {
+                    "yearly" => "yyyy-MM",     // Year-Month for yearly
+                    "monthly" => "MM-dd",      // Month-Day for monthly
+                    _ => "HH:00"               // Hour for daily/weekly
+                };
+                
+                var dateSales = await ordersQuery
+                    .GroupBy(o => new 
+                    { 
+                        Date = period == "yearly" 
+                            ? new DateTime(o.OrderDate.Year, o.OrderDate.Month, 1) 
+                            : period == "monthly" 
+                                ? new DateTime(DateTime.Now.Year, o.OrderDate.Month, o.OrderDate.Day) 
+                                : new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, o.OrderDate.Hour, 0, 0)
+                    })
+                    .Select(g => new
+                    {
+                        Date = g.Key.Date,
+                        DateLabel = g.Key.Date.ToString(dateFormat),
+                        OrderCount = g.Count(),
+                        TotalSales = g.Sum(o => o.TotalAmount),
+                        AverageOrderValue = g.Average(o => o.TotalAmount)
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToListAsync();
+                    
+                return Json(dateSales);
+            }
         }
 
         [HttpPost]
@@ -65,6 +168,24 @@ namespace FoodOrderingSystem.Controllers
                 .ToListAsync();
 
             return Json(statistics);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDishPopularityData()
+        {
+            var dishPopularity = await _context.Dishes
+                .Select(d => new
+                {
+                    Name = d.Name,
+                    PopularityScore = d.PopularityScore,
+                    Category = d.Category,
+                    OrderCount = _context.OrderItems.Where(oi => oi.DishId == d.Id).Sum(oi => oi.Quantity)
+                })
+                .Where(d => d.OrderCount > 0 || d.PopularityScore > 0)
+                .OrderByDescending(d => d.OrderCount)
+                .ToListAsync();
+
+            return Json(dishPopularity);
         }
 
         [HttpGet]

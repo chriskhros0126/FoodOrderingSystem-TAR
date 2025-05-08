@@ -1,0 +1,670 @@
+@{
+    ViewData["Title"] = "Sales Analytics";
+}
+
+<div class="container">
+    <h1 class="mb-4">Sales Analytics Dashboard</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                Explore sales data with different time periods and grouping options. Use the controls below to customize your view.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Controls Section -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <div class="me-auto">
+                            <h5 class="mb-0">Sales Analytics</h5>
+                        </div>
+                        
+                        <!-- Period Selection -->
+                        <div>
+                            <label class="me-2">Time Period:</label>
+                            <div class="btn-group" role="group" id="timePeriodGroup">
+                                <input type="radio" class="btn-check" name="period" id="dailyPeriod" value="daily" checked>
+                                <label class="btn btn-outline-primary" for="dailyPeriod">Daily</label>
+                                
+                                <input type="radio" class="btn-check" name="period" id="weeklyPeriod" value="weekly">
+                                <label class="btn btn-outline-primary" for="weeklyPeriod">Weekly</label>
+                                
+                                <input type="radio" class="btn-check" name="period" id="monthlyPeriod" value="monthly">
+                                <label class="btn btn-outline-primary" for="monthlyPeriod">Monthly</label>
+                                
+                                <input type="radio" class="btn-check" name="period" id="yearlyPeriod" value="yearly">
+                                <label class="btn btn-outline-primary" for="yearlyPeriod">Yearly</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Group By Selection -->
+                        <div>
+                            <label class="me-2">Group By:</label>
+                            <div class="btn-group" role="group" id="groupByGroup">
+                                <input type="radio" class="btn-check" name="groupBy" id="groupByCategory" value="category" checked>
+                                <label class="btn btn-outline-secondary" for="groupByCategory">Category</label>
+                                
+                                <input type="radio" class="btn-check" name="groupBy" id="groupByPayment" value="payment">
+                                <label class="btn btn-outline-secondary" for="groupByPayment">Payment Method</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Type Selection (only for date grouping) -->
+                        <div id="chartTypeControls">
+                            <label class="me-2">Chart Type:</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="chartType" id="lineChart" value="line" checked>
+                                <label class="btn btn-outline-info" for="lineChart">Line</label>
+                                
+                                <input type="radio" class="btn-check" name="chartType" id="barChart" value="bar">
+                                <label class="btn btn-outline-info" for="barChart">Bar</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Cards Row -->
+    <div class="row mb-4" id="summaryCards">
+        <div class="col-md-3">
+            <div class="card dashboard-card primary-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h5>Total Sales</h5>
+                    <h2 id="totalSalesCard">$0.00</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card success-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h5>Order Count</h5>
+                    <h2 id="orderCountCard">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card warning-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h5>Average Order Value</h5>
+                    <h2 id="avgOrderValueCard">$0.00</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card danger-card">
+                <div class="card-body">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Growth</h5>
+                    <h2 id="growthCard">0%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="chartTitle">Sales Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height:400px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                    <div id="noDataMessage" class="text-center text-muted py-5" style="display: none;">
+                        <p>No data available for the selected period. Try selecting a different time range or seeding demo data.</p>
+                        <a href="@Url.Action("SeedDemoData", "Reports")" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-database"></i> Seed Demo Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detailed Sales Data</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="salesTable">
+                            <thead id="tableHead">
+                                <!-- Table headers will be dynamically generated -->
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Table rows will be dynamically generated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-4">
+        <a href="@Url.Action("SeedDemoData", "Reports")" class="btn btn-outline-success">
+            <i class="fas fa-database"></i> Seed Demo Data
+        </a>
+        <a href="@Url.Action("DishPopularity", "Reports")" class="btn btn-outline-info">
+            <i class="fas fa-chart-pie"></i> View Dish Popularity
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Define color palette for charts
+        const colors = {
+            primary: 'rgba(67, 97, 238, 0.7)',
+            primaryBorder: 'rgba(67, 97, 238, 1)',
+            secondary: 'rgba(63, 55, 201, 0.7)',
+            secondaryBorder: 'rgba(63, 55, 201, 1)',
+            success: 'rgba(46, 204, 113, 0.7)',
+            successBorder: 'rgba(46, 204, 113, 1)',
+            warning: 'rgba(243, 156, 18, 0.7)',
+            warningBorder: 'rgba(243, 156, 18, 1)',
+            danger: 'rgba(231, 76, 60, 0.7)',
+            dangerBorder: 'rgba(231, 76, 60, 1)',
+            info: 'rgba(76, 201, 240, 0.7)',
+            infoBorder: 'rgba(76, 201, 240, 1)'
+        };
+        
+        // Palette for multiple categories/items
+        const colorPalette = [
+            colors.primary,
+            'rgba(231, 76, 60, 0.7)',
+            'rgba(46, 204, 113, 0.7)',
+            'rgba(243, 156, 18, 0.7)',
+            'rgba(76, 201, 240, 0.7)',
+            'rgba(155, 89, 182, 0.7)',
+            'rgba(52, 152, 219, 0.7)',
+            'rgba(149, 165, 166, 0.7)',
+            'rgba(241, 196, 15, 0.7)',
+            'rgba(230, 126, 34, 0.7)'
+        ];
+        
+        const borderColorPalette = [
+            colors.primaryBorder,
+            'rgba(231, 76, 60, 1)',
+            'rgba(46, 204, 113, 1)',
+            'rgba(243, 156, 18, 1)',
+            'rgba(76, 201, 240, 1)',
+            'rgba(155, 89, 182, 1)',
+            'rgba(52, 152, 219, 1)',
+            'rgba(149, 165, 166, 1)',
+            'rgba(241, 196, 15, 1)',
+            'rgba(230, 126, 34, 1)'
+        ];
+        
+        // Control variables
+        let mainChart = null;
+        let currentPeriod = 'daily';
+        let currentGroupBy = 'category';
+        let currentChartType = 'line';
+        let lastSalesData = null;
+        
+        // Currency formatter
+        const currencyFormatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        });
+        
+        // Load data based on current settings
+        async function loadSalesData() {
+            try {
+                // Show loading state
+                document.getElementById('mainChart').style.opacity = '0.5';
+                
+                // Fetch data from the API
+                const response = await fetch(`/Reports/GetDetailedSalesAnalytics?period=${currentPeriod}&groupBy=${currentGroupBy}`);
+                const data = await response.json();
+                
+                // Store data for later use
+                lastSalesData = data;
+                
+                // Display data or show "no data" message
+                if (!data || data.length === 0) {
+                    document.getElementById('noDataMessage').style.display = 'block';
+                    document.getElementById('mainChart').style.display = 'none';
+                    updateSummaryCards(null);
+                    updateDataTable(null);
+                    return;
+                }
+                
+                document.getElementById('noDataMessage').style.display = 'none';
+                document.getElementById('mainChart').style.display = 'block';
+                document.getElementById('mainChart').style.opacity = '1';
+                
+                // Update various components with the data
+                updateChart(data);
+                updateSummaryCards(data);
+                updateDataTable(data);
+                
+            } catch (error) {
+                console.error('Error loading sales data:', error);
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('mainChart').style.display = 'none';
+            }
+        }
+        
+        // Update the main chart based on the data and settings
+        function updateChart(data) {
+            // Prepare chart data based on the grouping type
+            let chartData = {};
+            let chartOptions = {};
+            let chartTitle = '';
+            
+            if (currentGroupBy === 'date') {
+                // Time-series data
+                chartTitle = `Sales Trend - ${getPeriodDisplay()} (${currentChartType.toUpperCase()})`;
+                
+                chartData = {
+                    labels: data.map(item => item.dateLabel),
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: data.map(item => item.totalSales),
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primaryBorder,
+                        borderWidth: 2,
+                        yAxisID: 'y',
+                        tension: 0.3,
+                        fill: currentChartType === 'line' ? 0.2 : undefined
+                    }, {
+                        label: 'Order Count',
+                        data: data.map(item => item.orderCount),
+                        backgroundColor: colors.success,
+                        borderColor: colors.successBorder,
+                        borderWidth: 2,
+                        yAxisID: 'y1',
+                        tension: 0.3,
+                        type: 'line'
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Total Sales ($)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Order Count'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: getTimeAxisLabel()
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    let value = context.raw;
+                                    if (label === 'Total Sales') {
+                                        return `${label}: ${currencyFormatter.format(value)}`;
+                                    }
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                };
+            } else if (currentGroupBy === 'category') {
+                // Category data
+                chartTitle = `Sales by Category - ${getPeriodDisplay()}`;
+                
+                chartData = {
+                    labels: data.map(item => item.category),
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: data.map(item => item.totalSales),
+                        backgroundColor: colorPalette.slice(0, data.length),
+                        borderColor: borderColorPalette.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    let value = context.raw;
+                                    let percentage = Math.round((value / data.reduce((sum, item) => sum + item.totalSales, 0)) * 100);
+                                    return `${label}: ${currencyFormatter.format(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                // Override chart type for category grouping
+                currentChartType = 'pie';
+            } else if (currentGroupBy === 'payment') {
+                // Payment method data
+                chartTitle = `Sales by Payment Method - ${getPeriodDisplay()}`;
+                
+                chartData = {
+                    labels: data.map(item => item.paymentMethod),
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: data.map(item => item.totalSales),
+                        backgroundColor: colorPalette.slice(0, data.length),
+                        borderColor: borderColorPalette.slice(0, data.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    let value = context.raw;
+                                    let percentage = Math.round((value / data.reduce((sum, item) => sum + item.totalSales, 0)) * 100);
+                                    return `${label}: ${currencyFormatter.format(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                // Override chart type for payment method grouping
+                currentChartType = 'doughnut';
+            }
+            
+            // Update chart title
+            document.getElementById('chartTitle').textContent = chartTitle;
+            
+            // Create or update the chart
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            mainChart = new Chart(ctx, {
+                type: currentChartType,
+                data: chartData,
+                options: chartOptions
+            });
+        }
+        
+        // Update the summary cards with aggregated data
+        function updateSummaryCards(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('totalSalesCard').textContent = currencyFormatter.format(0);
+                document.getElementById('orderCountCard').textContent = 0;
+                document.getElementById('avgOrderValueCard').textContent = currencyFormatter.format(0);
+                document.getElementById('growthCard').textContent = '0%';
+                return;
+            }
+            
+            // Calculate totals
+            let totalSales = 0;
+            let totalOrders = 0;
+            let avgOrderValue = 0;
+            let growth = '0%';
+            
+            if (currentGroupBy === 'date') {
+                totalSales = data.reduce((sum, item) => sum + item.totalSales, 0);
+                totalOrders = data.reduce((sum, item) => sum + item.orderCount, 0);
+                avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+                
+                // Calculate growth if there are at least 2 data points
+                if (data.length >= 2) {
+                    const firstHalf = data.slice(0, Math.floor(data.length / 2));
+                    const secondHalf = data.slice(Math.floor(data.length / 2));
+                    
+                    const firstHalfSales = firstHalf.reduce((sum, item) => sum + item.totalSales, 0);
+                    const secondHalfSales = secondHalf.reduce((sum, item) => sum + item.totalSales, 0);
+                    
+                    // Avoid division by zero
+                    if (firstHalfSales > 0) {
+                        const growthRate = ((secondHalfSales - firstHalfSales) / firstHalfSales) * 100;
+                        growth = `${growthRate.toFixed(1)}%`;
+                        
+                        // Add up/down arrow based on growth direction
+                        const growthEl = document.getElementById('growthCard');
+                        growthEl.textContent = growth;
+                        growthEl.className = growthRate >= 0 ? 'text-success' : 'text-danger';
+                        growthEl.innerHTML = `${growthRate >= 0 ? '<i class="fas fa-arrow-up me-1"></i>' : '<i class="fas fa-arrow-down me-1"></i>'}${growth}`;
+                    }
+                }
+            } else if (currentGroupBy === 'category') {
+                totalSales = data.reduce((sum, item) => sum + item.totalSales, 0);
+                totalOrders = data.reduce((sum, item) => sum + item.orderCount, 0);
+                const totalItems = data.reduce((sum, item) => sum + item.itemCount, 0);
+                avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+                
+                // For category view, add context about most popular category
+                if (data.length > 0) {
+                    const topCategory = data[0].category;
+                    const topCategoryPercentage = Math.round((data[0].totalSales / totalSales) * 100);
+                    document.getElementById('growthCard').innerHTML = `${topCategory}: ${topCategoryPercentage}%`;
+                    document.getElementById('growthCard').className = ''; // Reset classes
+                }
+            } else if (currentGroupBy === 'payment') {
+                totalSales = data.reduce((sum, item) => sum + item.totalSales, 0);
+                totalOrders = data.reduce((sum, item) => sum + item.orderCount, 0);
+                avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+                
+                // For payment view, add context about most used payment method
+                if (data.length > 0) {
+                    const topMethod = data[0].paymentMethod;
+                    const topMethodPercentage = Math.round((data[0].totalSales / totalSales) * 100);
+                    document.getElementById('growthCard').innerHTML = `${topMethod}: ${topMethodPercentage}%`;
+                    document.getElementById('growthCard').className = ''; // Reset classes
+                }
+            }
+            
+            // Update the UI
+            document.getElementById('totalSalesCard').textContent = currencyFormatter.format(totalSales);
+            document.getElementById('orderCountCard').textContent = totalOrders;
+            document.getElementById('avgOrderValueCard').textContent = currencyFormatter.format(avgOrderValue);
+        }
+        
+        // Update the data table with detailed information
+        function updateDataTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('tableHead').innerHTML = '<tr><th>No Data Available</th></tr>';
+                document.getElementById('tableBody').innerHTML = '';
+                return;
+            }
+            
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            // Clear existing table content
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+            
+            // Create table headers based on the grouping type
+            let headerRow = document.createElement('tr');
+            
+            if (currentGroupBy === 'date') {
+                headerRow.innerHTML = `
+                    <th>${getTimeAxisLabel()}</th>
+                    <th>Orders</th>
+                    <th>Total Sales</th>
+                    <th>Avg. Order Value</th>
+                `;
+            } else if (currentGroupBy === 'category') {
+                headerRow.innerHTML = `
+                    <th>Category</th>
+                    <th>Items Sold</th>
+                    <th>Orders</th>
+                    <th>Total Sales</th>
+                `;
+            } else if (currentGroupBy === 'payment') {
+                headerRow.innerHTML = `
+                    <th>Payment Method</th>
+                    <th>Orders</th>
+                    <th>Total Sales</th>
+                    <th>Percentage</th>
+                `;
+            }
+            
+            tableHead.appendChild(headerRow);
+            
+            // Create table rows with data
+            if (currentGroupBy === 'date') {
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.dateLabel}</td>
+                        <td>${item.orderCount}</td>
+                        <td>${currencyFormatter.format(item.totalSales)}</td>
+                        <td>${currencyFormatter.format(item.orderCount > 0 ? item.totalSales / item.orderCount : 0)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else if (currentGroupBy === 'category') {
+                const totalSales = data.reduce((sum, item) => sum + item.totalSales, 0);
+                
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    const percentage = Math.round((item.totalSales / totalSales) * 100);
+                    
+                    row.innerHTML = `
+                        <td>${item.category}</td>
+                        <td>${item.itemCount}</td>
+                        <td>${item.orderCount}</td>
+                        <td>${currencyFormatter.format(item.totalSales)} (${percentage}%)</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else if (currentGroupBy === 'payment') {
+                const totalSales = data.reduce((sum, item) => sum + item.totalSales, 0);
+                
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    const percentage = Math.round((item.totalSales / totalSales) * 100);
+                    
+                    row.innerHTML = `
+                        <td>${item.paymentMethod}</td>
+                        <td>${item.orderCount}</td>
+                        <td>${currencyFormatter.format(item.totalSales)}</td>
+                        <td>${percentage}%</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+        
+        // Helper to get the display text for the current period
+        function getPeriodDisplay() {
+            switch (currentPeriod) {
+                case 'daily': return 'Last 24 Hours';
+                case 'weekly': return 'Last 7 Days';
+                case 'monthly': return 'Last 30 Days';
+                case 'yearly': return 'Last 365 Days';
+                default: return 'Custom Period';
+            }
+        }
+        
+        // Helper to get the appropriate x-axis label based on period
+        function getTimeAxisLabel() {
+            switch (currentPeriod) {
+                case 'daily': return 'Hour';
+                case 'weekly': return 'Hour';
+                case 'monthly': return 'Date';
+                case 'yearly': return 'Month';
+                default: return 'Time';
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Period radio buttons
+            document.querySelectorAll('input[name="period"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentPeriod = this.value;
+                    loadSalesData();
+                });
+            });
+            
+            // Group By radio buttons
+            document.querySelectorAll('input[name="groupBy"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentGroupBy = this.value;
+                    
+                    // Hide chart type controls as they're not needed anymore
+                    document.getElementById('chartTypeControls').style.display = 'none';
+                    
+                    loadSalesData();
+                });
+            });
+            
+            // Chart Type radio buttons
+            document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    currentChartType = this.value;
+                    updateChart(lastSalesData);
+                });
+            });
+            
+            // Initially hide chart type controls
+            document.getElementById('chartTypeControls').style.display = 'none';
+        }
+        
+        // Initialize everything when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadSalesData();
+        });
+    </script>
+} 
