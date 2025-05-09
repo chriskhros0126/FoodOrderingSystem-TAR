@@ -171,11 +171,21 @@
         <a href="@Url.Action("DishPopularity", "Reports")" class="btn btn-outline-info">
             <i class="fas fa-chart-pie"></i> View Dish Popularity
         </a>
+        <button id="exportPdfBtn" class="btn btn-outline-danger">
+            <i class="fas fa-file-pdf"></i> Export to PDF
+        </button>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include pdf generation libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Include PDF Export Utility -->
+    <script src="~/js/pdf-export-utility.js"></script>
+    
     <script>
         // Define color palette for charts
         const colors = {
@@ -665,6 +675,38 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             loadSalesData();
+            
+            // Setup PDF export functionality
+            document.getElementById('exportPdfBtn').addEventListener('click', async function() {
+                const exportBtn = document.getElementById('exportPdfBtn');
+                const originalBtnHtml = exportBtn.innerHTML;
+                
+                // Use the PDF Export Utility
+                await PdfExportUtility.generatePdf({
+                    content: document.querySelector('.container'),
+                    filename: `sales-analytics-report-${new Date().toISOString().slice(0,10)}.pdf`,
+                    title: 'Sales Analytics Report',
+                    orientation: 'portrait',
+                    beforeExport: function() {
+                        // Show loading indication
+                        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                        exportBtn.disabled = true;
+                    },
+                    afterExport: function() {
+                        // Restore button state
+                        exportBtn.innerHTML = originalBtnHtml;
+                        exportBtn.disabled = false;
+                    },
+                    onError: function(error) {
+                        console.error('Error generating PDF:', error);
+                        alert('There was an error generating the PDF. Please try again.');
+                        
+                        // Restore button in case of error
+                        exportBtn.innerHTML = originalBtnHtml;
+                        exportBtn.disabled = false;
+                    }
+                });
+            });
         });
     </script>
-} 
+}
