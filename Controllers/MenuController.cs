@@ -320,21 +320,34 @@ namespace FoodOrderingSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddIngredient(DishIngredientViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // Check if this ingredient is already added to the dish
+                return RedirectToAction("ManageIngredients", new { id = model.DishId });
+            }
+
+            try
+            {
+                // Check if this dish already has this ingredient
                 var existingIngredient = await _context.DishIngredients
                     .FirstOrDefaultAsync(di => di.DishId == model.DishId && di.InventoryItemId == model.InventoryItemId);
-                    
+
                 if (existingIngredient != null)
                 {
-                    // Update the quantity if it already exists
+                    // Update existing ingredient quantity
                     existingIngredient.QuantityRequired = model.QuantityRequired;
                     _context.Update(existingIngredient);
+                    
+                    // Get ingredient name for the message
+                    var ingredientName = await _context.InventoryItems
+                        .Where(i => i.Id == model.InventoryItemId)
+                        .Select(i => i.Name)
+                        .FirstOrDefaultAsync() ?? "Ingredient";
+                        
+                    TempData["SuccessMessage"] = $"Updated {ingredientName} quantity successfully.";
                 }
                 else
                 {
-                    // Add new ingredient to the dish
+                    // Add new dish ingredient
                     var dishIngredient = new DishIngredient
                     {
                         DishId = model.DishId,
@@ -343,14 +356,24 @@ namespace FoodOrderingSystem.Controllers
                     };
                     
                     _context.DishIngredients.Add(dishIngredient);
+                    
+                    // Get ingredient name for the message
+                    var ingredientName = await _context.InventoryItems
+                        .Where(i => i.Id == model.InventoryItemId)
+                        .Select(i => i.Name)
+                        .FirstOrDefaultAsync() ?? "Ingredient";
+                        
+                    TempData["SuccessMessage"] = $"Added {ingredientName} successfully.";
                 }
-                
+
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(ManageIngredients), new { id = model.DishId });
             }
-            
-            // If we got this far, something failed, redisplay form
-            return RedirectToAction(nameof(ManageIngredients), new { id = model.DishId });
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error adding ingredient: {ex.Message}";
+            }
+
+            return RedirectToAction("ManageIngredients", new { id = model.DishId });
         }
         
         // POST: Menu/RemoveIngredient
@@ -358,16 +381,35 @@ namespace FoodOrderingSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveIngredient(int dishId, int ingredientId)
         {
-            var dishIngredient = await _context.DishIngredients
-                .FirstOrDefaultAsync(di => di.DishId == dishId && di.InventoryItemId == ingredientId);
-                
-            if (dishIngredient != null)
+            try
             {
-                _context.DishIngredients.Remove(dishIngredient);
-                await _context.SaveChangesAsync();
+                var dishIngredient = await _context.DishIngredients
+                    .FirstOrDefaultAsync(di => di.DishId == dishId && di.InventoryItemId == ingredientId);
+
+                if (dishIngredient != null)
+                {
+                    // Get ingredient name for the message
+                    var ingredientName = await _context.InventoryItems
+                        .Where(i => i.Id == ingredientId)
+                        .Select(i => i.Name)
+                        .FirstOrDefaultAsync() ?? "Ingredient";
+                    
+                    _context.DishIngredients.Remove(dishIngredient);
+                    await _context.SaveChangesAsync();
+                    
+                    TempData["SuccessMessage"] = $"Removed {ingredientName} successfully.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Ingredient not found.";
+                }
             }
-            
-            return RedirectToAction(nameof(ManageIngredients), new { id = dishId });
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error removing ingredient: {ex.Message}";
+            }
+
+            return RedirectToAction("ManageIngredients", new { id = dishId });
         }
     }
 }

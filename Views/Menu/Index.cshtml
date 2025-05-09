@@ -11,6 +11,11 @@
 
     <div id="alert-container"></div>
 
+    <div id="filter-notification" class="alert alert-info alert-dismissible fade show d-none" role="alert">
+        <span id="notification-text"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
@@ -95,6 +100,52 @@
 
 @section Scripts {
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAndShowFilterNotification();
+        });
+
+        // Show notification based on applied filters
+        function checkAndShowFilterNotification() {
+            const category = document.getElementById('category').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            const specialOnly = document.getElementById('specialOnly').checked;
+            
+            let notifications = [];
+            
+            if (category) {
+                notifications.push(`Category: ${category}`);
+            }
+            
+            if (sortOrder) {
+                let sortText = '';
+                switch(sortOrder) {
+                    case 'price_asc':
+                        sortText = 'Price: Low to High';
+                        break;
+                    case 'price_desc':
+                        sortText = 'Price: High to Low';
+                        break;
+                    default:
+                        sortText = sortOrder;
+                }
+                notifications.push(`Sorted by: ${sortText}`);
+            }
+            
+            if (specialOnly) {
+                notifications.push('Showing Special Items Only');
+            }
+            
+            const notification = document.getElementById('filter-notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            if (notifications.length > 0) {
+                notificationText.textContent = 'Filters applied: ' + notifications.join(', ');
+                notification.classList.remove('d-none');
+            } else {
+                notification.classList.add('d-none');
+            }
+        }
+
         function showAlert(message, type = 'danger') {
             const alertContainer = document.getElementById('alert-container');
             const alert = document.createElement('div');
@@ -109,6 +160,46 @@
             setTimeout(() => {
                 alert.remove();
             }, 5000);
+        }
+
+        function showToast(message, type = 'primary') {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Initialize and show the toast
+            const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: 3000 });
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
+            });
         }
 
         async function toggleAvailability(checkbox, dishId) {
@@ -131,11 +222,11 @@
                 }
 
                 checkbox.checked = result.isAvailable;
-                showAlert('Availability updated successfully!', 'success');
+                showToast('Availability updated successfully!', 'success');
             } catch (error) {
                 console.error('Error:', error);
                 checkbox.checked = originalState; // Revert the checkbox
-                showAlert(error.message || 'Failed to update availability');
+                showToast(error.message || 'Failed to update availability', 'danger');
             }
         }
     </script>
