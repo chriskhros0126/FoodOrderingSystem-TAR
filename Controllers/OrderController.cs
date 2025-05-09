@@ -33,10 +33,37 @@ namespace FoodOrderingSystem.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(string sortOrder, string category, bool? specialOnly)
         {
-            var dishes = await _context.Dishes.ToListAsync();
-            ViewBag.Dishes = dishes;
+            var dishes = _context.Dishes.AsQueryable();
+
+            // Apply category filter
+            if (!string.IsNullOrEmpty(category))
+            {
+                dishes = dishes.Where(d => d.Category == category);
+            }
+
+            // Apply special filter
+            if (specialOnly.HasValue && specialOnly.Value)
+            {
+                dishes = dishes.Where(d => d.IsSpecialToday);
+            }
+
+            // Apply sorting
+            dishes = sortOrder?.ToLower() switch
+            {
+                "price_asc" => dishes.OrderBy(d => d.Price),
+                "price_desc" => dishes.OrderByDescending(d => d.Price),
+                _ => dishes.OrderBy(d => d.Name) // Default sorting
+            };
+
+            // Get unique categories for the filter dropdown
+            ViewBag.Categories = await _context.Dishes.Select(d => d.Category).Distinct().ToListAsync();
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentCategory = category;
+            ViewBag.SpecialOnly = specialOnly;
+
+            ViewBag.Dishes = await dishes.ToListAsync();
             return View();
         }
 
