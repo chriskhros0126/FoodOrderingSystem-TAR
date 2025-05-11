@@ -32,16 +32,22 @@ namespace FoodOrderingSystem.Controllers
         }
 
         // GET: /Payment/Create
-        public IActionResult Create()
+        public IActionResult Create(string tempOrderId = null)
         {
-            if (TempData["PendingOrder"] == null || TempData["OrderItemDetails"] == null || TempData["TempOrderId"] == null)
+            if (TempData["PendingOrder"] == null || TempData["OrderItemDetails"] == null)
             {
+                // If TempData is lost but we have tempOrderId in query string, try to redirect back to confirmation
+                if (!string.IsNullOrEmpty(tempOrderId))
+                {
+                    TempData["ErrorMessage"] = "Your session has expired. Please confirm your order again.";
+                    return RedirectToAction("Confirmation", "Order");
+                }
+                
                 return RedirectToAction("Index", "Home");
             }
 
             var orderJson = TempData["PendingOrder"].ToString();
             var orderItemDetailsJson = TempData["OrderItemDetails"].ToString();
-            var tempOrderId = TempData["TempOrderId"].ToString();
             
             // Keep the data in TempData for form submission
             TempData.Keep("PendingOrder");
@@ -59,7 +65,7 @@ namespace FoodOrderingSystem.Controllers
             };
 
             ViewBag.PendingOrderTotal = order.TotalAmount;
-            ViewBag.TempOrderId = tempOrderId;
+            ViewBag.TempOrderId = tempOrderId ?? TempData["TempOrderId"]?.ToString();
 
             return View(payment);
         }
@@ -111,7 +117,8 @@ namespace FoodOrderingSystem.Controllers
             ViewBag.PendingOrderTotal = pendingOrderData.TotalAmount;
             ViewBag.TempOrderId = tempOrderId;
 
-            if (!string.IsNullOrEmpty(CouponCode))
+            // Only apply coupon if one isn't already applied
+            if (!string.IsNullOrEmpty(CouponCode) && !pendingOrderData.CouponId.HasValue)
             {
                 var now = DateTime.Now;
                 var coupon = _context.Coupons
@@ -123,6 +130,9 @@ namespace FoodOrderingSystem.Controllers
                     Amount -= Amount * (coupon.DiscountValue / 100.0m);
                     pendingOrderData.CouponId = coupon.CouponId;
                     pendingOrderData.TotalAmount = Amount;
+                    
+                    // Update the JSON in TempData to reflect the changes
+                    TempData["PendingOrder"] = JsonSerializer.Serialize(pendingOrderData);
                 }
                 else if (CouponCode.Trim() != "")
                 {

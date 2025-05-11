@@ -1,84 +1,175 @@
 @model FoodOrderingSystem.Controllers.OrderConfirmationViewModel
 @{
-    ViewData["Title"] = "Order Confirmation";
+    ViewData["Title"] = "Confirm Your Order";
 }
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3 class="mb-0">Order Confirmed!</h3>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Order Confirmation</h3>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-success">
-                        <h4 class="alert-heading">Thank you for your order!</h4>
-                        <p>Your order has been received and is being processed. Here are your order details:</p>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h5>Order Information</h5>
-                            <p><strong>Order Status:</strong> <span class="badge bg-primary">@Model.Order.Status</span></p>
-                            <p><strong>Order Date:</strong> @Model.Order.OrderDate.ToString("g")</p>
+                    <h5>Please confirm your order details</h5>
+                    
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @TempData["ErrorMessage"]
                         </div>
+                    }
+                    
+                    <div class="row mt-4">
                         <div class="col-md-6">
-                            <h5>Delivery Information</h5>
+                            <h6>Delivery Information</h6>
                             <p><strong>Name:</strong> @Model.Order.CustomerName</p>
                             <p><strong>Phone:</strong> @Model.Order.CustomerPhone</p>
                             <p><strong>Address:</strong> @Model.Order.DeliveryAddress</p>
+                            @if (!string.IsNullOrEmpty(Model.Order.Notes))
+                            {
+                                <p><strong>Special Instructions:</strong> @Model.Order.Notes</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Order Summary</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.OrderItemDetails)
+                                        {
+                                            <tr>
+                                                <td>@item.DishName</td>
+                                                <td>@item.Quantity</td>
+                                                <td>@item.UnitPrice.ToString("C")</td>
+                                                <td>@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total:</th>
+                                            <th>@Model.Order.TotalAmount.ToString("C")</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
-
-                    <h5>Order Items</h5>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Quantity</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.OrderItemDetails)
-                                {
-                                    <tr>
-                                        <td>@item.DishName</td>
-                                        <td>@item.Quantity</td>
-                                        <td>@item.UnitPrice.ToString("C")</td>
-                                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
-                                    </tr>
-                                }
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                    <td><strong>@Model.Order.TotalAmount.ToString("C")</strong></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.Order.Notes))
-                    {
-                        <div class="mt-4">
-                            <h5>Special Instructions</h5>
-                            <p>@Model.Order.Notes</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Coupon</h6>
+                            @if (Model.Order.CouponId.HasValue)
+                            {
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    Coupon applied! Your discount has been included in the total.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="input-group mb-3">
+                                    <input type="text" id="couponCode" class="form-control" placeholder="Enter coupon code">
+                                    <button class="btn btn-outline-secondary" type="button" id="applyCoupon">Apply</button>
+                                </div>
+                                <div id="couponMessage"></div>
+                            }
                         </div>
-                    }
-
-                    <div class="mt-4 d-flex justify-content-between">
-                        <a href="/" class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left"></i> Return to Menu
-                        </a>
-                        <a href="@Url.Action("Create", "Payment")" class="btn btn-success">
-                            <i class="fas fa-credit-card"></i> Proceed to Payment
-                        </a>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <form asp-controller="Payment" asp-action="Create" method="get">
+                                <input type="hidden" name="tempOrderId" value="@TempData["TempOrderId"]" />
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-credit-card me-2"></i>
+                                    Proceed to Payment
+                                </button>
+                                <a asp-controller="Order" asp-action="Create" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil me-2"></i>
+                                    Edit Order
+                                </a>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Handle form submission for payment
+            $("form[asp-controller='Payment']").on("submit", function(e) {
+                // Store the tempOrderId in sessionStorage as a backup
+                sessionStorage.setItem('tempOrderId', '@TempData["TempOrderId"]');
+            });
+            
+            // Apply coupon button click handler
+            $("#applyCoupon").click(function() {
+                const couponCode = $("#couponCode").val().trim();
+                if (!couponCode) {
+                    showCouponMessage("Please enter a coupon code", "danger");
+                    return;
+                }
+                
+                // Validate coupon via AJAX
+                $.get("/Coupon/ValidateForCheckout", { code: couponCode })
+                    .done(function(response) {
+                        if (response.valid) {
+                            // Calculate discount
+                            const currentTotal = @Model.Order.TotalAmount;
+                            const discountPercent = response.coupon.discountValue;
+                            const discountAmount = (currentTotal * discountPercent / 100).toFixed(2);
+                            const newTotal = (currentTotal - discountAmount).toFixed(2);
+                            
+                            // Show success message with discount details
+                            showCouponMessage(
+                                `Coupon applied! ${discountPercent}% discount ($${discountAmount}) will be applied at checkout.`, 
+                                "success"
+                            );
+                            
+                            // Store coupon in session or local storage for checkout
+                            sessionStorage.setItem('appliedCoupon', couponCode);
+                            
+                            // Update the Order object in TempData via AJAX
+                            $.post("/Order/ApplyCoupon", { 
+                                tempOrderId: '@TempData["TempOrderId"]', 
+                                couponCode: couponCode 
+                            })
+                            .done(function(updateResponse) {
+                                if (updateResponse.success) {
+                                    // Reload page to show updated total
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            showCouponMessage(response.message, "danger");
+                        }
+                    })
+                    .fail(function() {
+                        showCouponMessage("Error validating coupon", "danger");
+                    });
+            });
+            
+            function showCouponMessage(message, type) {
+                $("#couponMessage").html(`
+                    <div class="alert alert-${type} mt-2">
+                        ${message}
+                    </div>
+                `);
+            }
+        });
+    </script>
+} 

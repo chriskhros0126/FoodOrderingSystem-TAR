@@ -1,164 +1,252 @@
 ﻿@model FoodOrderingSystem.Models.Payment
 
 @{
-    ViewData["Title"] = "Create Payment";
-    // Check if the current user is admin or staff
-    bool isAdmin = User.IsInRole("Admin") || User.IsInRole("Staff");
+    ViewData["Title"] = "Payment";
+    var pendingOrderTotal = ViewBag.PendingOrderTotal;
+    var tempOrderId = ViewBag.TempOrderId;
+    
+    // Check if there's an applied coupon in the TempData
+    var pendingOrderJson = TempData["PendingOrder"]?.ToString();
+    bool hasCoupon = false;
+    string couponCode = string.Empty;
+    
+    if (!string.IsNullOrEmpty(pendingOrderJson))
+    {
+        var pendingOrder = System.Text.Json.JsonSerializer.Deserialize<FoodOrderingSystem.Models.Order>(pendingOrderJson);
+        hasCoupon = pendingOrder?.CouponId.HasValue ?? false;
+        
+        // Keep TempData
+        TempData.Keep("PendingOrder");
+        TempData.Keep("OrderItemDetails");
+        TempData.Keep("TempOrderId");
+    }
 }
 
-<div class="container">
-    <h2>Create Payment</h2>
-    <hr />
-
+<div class="container mt-4">
     <div class="row">
-        <div class="col-md-8">
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger">
-                    <h5>There were errors with your payment:</h5>
-                    <ul>
-                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                        {
-                            <li>@error.ErrorMessage</li>
-                        }
-                    </ul>
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Payment Details</h3>
                 </div>
-            }
-
-            <form asp-controller="Payment" asp-action="Create" method="post" id="paymentForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="tempOrderId" value="@ViewBag.TempOrderId" />
-                <!-- CouponCode field will be added dynamically via JS when needed -->
-                
-                <div class="form-group mb-3">
-                    <label class="form-label">Order Reference</label>
-                    <input type="text" class="form-control" value="@ViewBag.TempOrderId" readonly />
-                    <small class="text-muted">This is a temporary reference until payment is complete</small>
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label class="form-label">Payment Method</label>
-                    <select name="PaymentMethod" class="form-select" required id="paymentMethodSelect">
-                        <option value="">-- Select Payment Method --</option>
-                        <option value="Credit Card">Credit Card</option>
-                        <option value="PayPal">PayPal</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Cash on Delivery">Cash on Delivery</option>
-                        @if (isAdmin)
-                        {
-                            <option value="Manual Entry">Manual Entry (Admin)</option>
-                        }
-                    </select>
-                    @if (ViewData.ModelState["PaymentMethod"]?.Errors.Count > 0)
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
                     {
-                        <span class="text-danger">@ViewData.ModelState["PaymentMethod"].Errors.First().ErrorMessage</span>
-                    }
-                </div>
-                
-                <!-- Admin notes field for manual entry -->
-                <div class="form-group mb-3" id="manualEntryNotes" style="display: none;">
-                    <label class="form-label">Admin Notes (Optional)</label>
-                    <textarea class="form-control" name="AdminNotes" rows="3" placeholder="Enter details about this manual payment..."></textarea>
-                    <small class="text-muted">Please include the reason for this manual entry and any relevant payment details</small>
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label class="form-label">Amount</label>
-                    <input type="number" name="Amount" class="form-control" value="@ViewBag.PendingOrderTotal" readonly step="0.01" />
-                    @if (ViewData.ModelState["Amount"]?.Errors.Count > 0)
-                    {
-                        <span class="text-danger">@ViewData.ModelState["Amount"].Errors.First().ErrorMessage</span>
-                    }
-                </div>
-                
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="mb-0">Apply Coupon (Optional)</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label for="couponCodeInput" class="form-label">Coupon Code</label>
-                            <div class="input-group">
-                                <input type="text" id="couponCodeInput" class="form-control" placeholder="Enter coupon code" />
-                                <button type="button" id="applyCoupon" class="btn btn-outline-primary">Apply</button>
-                            </div>
-                            <div id="couponMessage" class="form-text mt-2"></div>
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach (var modelState in ViewData.ModelState.Values)
+                                {
+                                    foreach (var error in modelState.Errors)
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                }
+                            </ul>
                         </div>
-                    </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" name="tempOrderId" value="@tempOrderId" />
+                        
+                        <div class="mb-4">
+                            <h5>Order Total: <span class="text-primary">@pendingOrderTotal.ToString("C")</span></h5>
+                            @if (hasCoupon)
+                            {
+                                <div class="alert alert-success mt-2">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    Coupon discount has been applied to your total.
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check payment-method-option">
+                                        <input class="form-check-input" type="radio" name="PaymentMethod" id="creditCard" value="Credit Card" checked>
+                                        <label class="form-check-label" for="creditCard">
+                                            <i class="bi bi-credit-card me-2"></i>
+                                            Credit Card
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check payment-method-option">
+                                        <input class="form-check-input" type="radio" name="PaymentMethod" id="debitCard" value="Debit Card">
+                                        <label class="form-check-label" for="debitCard">
+                                            <i class="bi bi-credit-card me-2"></i>
+                                            Debit Card
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check payment-method-option">
+                                        <input class="form-check-input" type="radio" name="PaymentMethod" id="paypal" value="PayPal">
+                                        <label class="form-check-label" for="paypal">
+                                            <i class="bi bi-paypal me-2"></i>
+                                            PayPal
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check payment-method-option">
+                                        <input class="form-check-input" type="radio" name="PaymentMethod" id="cash" value="Cash on Delivery">
+                                        <label class="form-check-label" for="cash">
+                                            <i class="bi bi-cash me-2"></i>
+                                            Cash on Delivery
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="creditCardDetails" class="mb-4">
+                            <div class="mb-3">
+                                <label class="form-label">Card Number</label>
+                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" id="cardNumber">
+                                <div class="invalid-feedback">Please enter a valid card number</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" id="expiryDate">
+                                    <div class="invalid-feedback">Please enter a valid expiry date</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CVV</label>
+                                    <input type="text" class="form-control" placeholder="123" maxlength="3" id="cvv">
+                                    <div class="invalid-feedback">Please enter a valid CVV</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Cardholder Name</label>
+                                <input type="text" class="form-control" placeholder="John Doe" id="cardholderName">
+                                <div class="invalid-feedback">Please enter the cardholder name</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Coupon Code</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="CouponCode" id="couponCode" placeholder="Enter coupon code (optional)" @(hasCoupon ? "disabled" : "")>
+                                <button class="btn btn-outline-secondary" type="button" id="applyCouponBtn" @(hasCoupon ? "disabled" : "")>Apply</button>
+                            </div>
+                            @if (hasCoupon)
+                            {
+                                <small class="text-success mt-1 d-block">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Coupon already applied in previous step
+                                </small>
+                            }
+                            <div id="couponMessage"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="paymentButton">
+                                <span class="spinner-border spinner-border-sm d-none" id="paymentSpinner" role="status" aria-hidden="true"></span>
+                                Complete Payment
+                            </button>
+                            <a href="@Url.Action("Confirmation", "Order")" class="btn btn-outline-secondary">Back to Order Summary</a>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="form-group d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">Complete Payment</button>
-                    <a href="@Url.Action("Confirmation", "Order")" class="btn btn-outline-secondary">Back to Order</a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
     <script>
-        // Track if a coupon has been applied
-        let appliedCouponCode = '';
-        
-        // Handle showing/hiding manual entry notes for admins
-        document.getElementById('paymentMethodSelect').addEventListener('change', function() {
-            const manualEntryDiv = document.getElementById('manualEntryNotes');
-            if (this.value === 'Manual Entry') {
-                manualEntryDiv.style.display = 'block';
-            } else {
-                manualEntryDiv.style.display = 'none';
-            }
-        });
-        
-        document.getElementById('applyCoupon').addEventListener('click', function() {
-            const couponCode = document.getElementById('couponCodeInput').value.trim();
-            const messageEl = document.getElementById('couponMessage');
-            
-            if (!couponCode) {
-                messageEl.innerHTML = '<span class="text-danger">Please enter a coupon code</span>';
-                return;
+        $(document).ready(function() {
+            // Check if we have tempOrderId in sessionStorage and add it to the form if needed
+            const storedTempOrderId = sessionStorage.getItem('tempOrderId');
+            if (storedTempOrderId && !$('input[name="tempOrderId"]').val()) {
+                $('form').append(`<input type="hidden" name="tempOrderId" value="${storedTempOrderId}">`);
             }
             
-            // Validate the coupon
-            fetch(`/Coupon/ValidateForCheckout?code=${encodeURIComponent(couponCode)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.valid) {
-                        // Calculate discount
-                        const amountInput = document.querySelector('input[name="Amount"]');
-                        const currentAmount = parseFloat(amountInput.value);
-                        const discountAmount = currentAmount * (data.coupon.discountValue / 100);
-                        const newAmount = (currentAmount - discountAmount).toFixed(2);
-                        
-                        // Update amount
-                        amountInput.value = newAmount;
-                        
-                        // Store the applied coupon code
-                        appliedCouponCode = couponCode;
-                        
-                        messageEl.innerHTML = `<span class="text-success">Coupon applied! You saved $${discountAmount.toFixed(2)}</span>`;
-                    } else {
-                        messageEl.innerHTML = `<span class="text-danger">${data.message}</span>`;
+            // Toggle payment method details
+            $('input[name="PaymentMethod"]').change(function() {
+                if ($(this).val() === 'Credit Card' || $(this).val() === 'Debit Card') {
+                    $('#creditCardDetails').slideDown();
+                } else {
+                    $('#creditCardDetails').slideUp();
+                }
+            });
+            
+            // Format credit card number
+            $('#cardNumber').on('input', function() {
+                var value = $(this).val().replace(/\D/g, '');
+                var formattedValue = '';
+                
+                for (var i = 0; i < value.length; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        formattedValue += ' ';
                     }
-                })
-                .catch(error => {
-                    messageEl.innerHTML = '<span class="text-danger">Error validating coupon</span>';
-                    console.error('Error:', error);
-                });
-        });
-        
-        // Add the coupon code to the form only when submitting if one was applied
-        document.getElementById('paymentForm').addEventListener('submit', function(e) {
-            if (appliedCouponCode) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'CouponCode';
-                input.value = appliedCouponCode;
-                this.appendChild(input);
+                    formattedValue += value[i];
+                }
+                
+                $(this).val(formattedValue);
+            });
+            
+            // Format expiry date
+            $('#expiryDate').on('input', function() {
+                var value = $(this).val().replace(/\D/g, '');
+                var formattedValue = '';
+                
+                if (value.length > 0) {
+                    formattedValue = value.substring(0, 2);
+                    if (value.length > 2) {
+                        formattedValue += '/' + value.substring(2, 4);
+                    }
+                }
+                
+                $(this).val(formattedValue);
+            });
+            
+            // Apply coupon button
+            $('#applyCouponBtn').click(function() {
+                const couponCode = $('#couponCode').val().trim();
+                if (!couponCode) {
+                    showCouponMessage('Please enter a coupon code', 'danger');
+                    return;
+                }
+                
+                // Validate coupon
+                $.get('/Coupon/ValidateForCheckout', { code: couponCode })
+                    .done(function(response) {
+                        if (response.valid) {
+                            showCouponMessage(`Coupon "${response.coupon.code}" is valid! ${response.coupon.discountValue}% discount will be applied.`, 'success');
+                        } else {
+                            showCouponMessage(response.message, 'danger');
+                        }
+                    })
+                    .fail(function() {
+                        showCouponMessage('Error validating coupon', 'danger');
+                    });
+            });
+            
+            function showCouponMessage(message, type) {
+                $('#couponMessage').html(`
+                    <div class="alert alert-${type} mt-2">
+                        ${message}
+                    </div>
+                `);
             }
+            
+            // Form submission
+            $('form').submit(function() {
+                // Show loading spinner
+                $('#paymentButton').prop('disabled', true);
+                $('#paymentSpinner').removeClass('d-none');
+                
+                // For demo purposes, we're not validating the credit card fields server-side
+                // In a real app, you would validate these fields
+                
+                return true;
+            });
         });
     </script>
 }

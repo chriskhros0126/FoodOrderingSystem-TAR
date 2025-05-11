@@ -486,6 +486,48 @@ namespace FoodOrderingSystem.Controllers
             ViewBag.OrderId = id;
             return View();
         }
+
+        [HttpPost]
+        public IActionResult ApplyCoupon(string tempOrderId, string couponCode)
+        {
+            if (string.IsNullOrEmpty(couponCode) || TempData["PendingOrder"] == null)
+            {
+                return Json(new { success = false, message = "Invalid request" });
+            }
+
+            var orderJson = TempData["PendingOrder"].ToString();
+            var order = JsonSerializer.Deserialize<Order>(orderJson);
+            
+            // Check if a coupon is already applied
+            if (order.CouponId.HasValue)
+            {
+                return Json(new { success = false, message = "A coupon is already applied to this order" });
+            }
+
+            var now = DateTime.Now;
+            var coupon = _context.Coupons
+                .FirstOrDefault(c => c.Code == couponCode && c.IsActive &&
+                                    c.ValidFrom <= now && c.ValidUntil >= now);
+
+            if (coupon == null)
+            {
+                return Json(new { success = false, message = "Invalid or expired coupon" });
+            }
+
+            // Calculate discount
+            decimal discountAmount = order.TotalAmount * (coupon.DiscountValue / 100.0m);
+            order.TotalAmount -= discountAmount;
+            order.CouponId = coupon.CouponId;
+
+            // Update the order in TempData
+            TempData["PendingOrder"] = JsonSerializer.Serialize(order);
+            
+            return Json(new { 
+                success = true, 
+                message = $"Coupon applied successfully! You saved {discountAmount:C}",
+                newTotal = order.TotalAmount
+            });
+        }
     }
 
     // Move these classes outside of the controller class but still within the namespace
