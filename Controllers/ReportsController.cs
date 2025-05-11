@@ -289,5 +289,68 @@ namespace FoodOrderingSystem.Controllers
 
             return Content("Demo data seeded! You can now view charts on the Reports page.");
         }
+        
+        public IActionResult SeasonalTrends()
+        {
+            return View();
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> GetSeasonalTrendsData()
+        {
+            // Get all orders with their items and dishes
+            var orderItems = await _context.OrderItems
+                .Include(oi => oi.Order)
+                .Include(oi => oi.Dish)
+                .Where(oi => oi.Order.OrderDate >= DateTime.Today.AddYears(-1)) // Last year of data
+                .ToListAsync();
+            
+            // Group orders by season
+            var seasonalData = orderItems
+                .GroupBy(oi => GetSeason(oi.Order.OrderDate))
+                .Select(g => new
+                {
+                    Season = g.Key,
+                    Dishes = g.GroupBy(oi => oi.Dish.Name)
+                        .Select(dg => new
+                        {
+                            DishName = dg.Key,
+                            OrderCount = dg.Sum(oi => oi.Quantity),
+                            TotalRevenue = dg.Sum(oi => oi.Quantity * oi.UnitPrice)
+                        })
+                        .OrderByDescending(d => d.OrderCount)
+                        .Take(3) // Top 3 dishes per season
+                        .ToList()
+                })
+                .OrderBy(s => GetSeasonOrder(s.Season))
+                .ToList();
+            
+            return Json(seasonalData);
+        }
+        
+        // Helper method to determine the season from a date
+        private string GetSeason(DateTime date)
+        {
+            return date.Month switch
+            {
+                >= 3 and <= 5 => "Spring",
+                >= 6 and <= 8 => "Summer",
+                >= 9 and <= 11 => "Fall",
+                _ => "Winter"
+            };
+        }
+        
+        // Helper method to order seasons chronologically
+        private int GetSeasonOrder(string season)
+        {
+            return season switch
+            {
+                "Spring" => 1,
+                "Summer" => 2,
+                "Fall" => 3,
+                "Winter" => 4,
+                _ => 0
+            };
+        }
     }
 }

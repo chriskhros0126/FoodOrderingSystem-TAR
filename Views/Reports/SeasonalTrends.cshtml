@@ -1,0 +1,391 @@
+@{
+    ViewData["Title"] = "Seasonal Trends";
+}
+
+<div class="container">
+    <h1 class="mb-4">Seasonal Trends Analysis</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                This report shows the top 3 most ordered dishes for each season. Use this information to plan seasonal menus and promotions.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Season Selection -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select Season</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group w-100" role="group" aria-label="Season selection">
+                        <button type="button" class="btn btn-outline-success season-btn active" data-season="Spring">
+                            <i class="fas fa-seedling me-2"></i> Spring
+                        </button>
+                        <button type="button" class="btn btn-outline-warning season-btn" data-season="Summer">
+                            <i class="fas fa-sun me-2"></i> Summer
+                        </button>
+                        <button type="button" class="btn btn-outline-danger season-btn" data-season="Autumn">
+                            <i class="fas fa-leaf me-2"></i> Autumn
+                        </button>
+                        <button type="button" class="btn btn-outline-info season-btn" data-season="Winter">
+                            <i class="fas fa-snowflake me-2"></i> Winter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Season Cards -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card dashboard-card primary-card" id="selectedSeasonCard">
+                <div class="card-body">
+                    <div class="card-icon" id="seasonIcon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h5 id="seasonTitle">Spring</h5>
+                    <h2 id="seasonTopDish">-</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seasonal Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="chartTitle">Spring Bestsellers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height:400px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                    <div id="noDataMessage" class="text-center text-muted py-5" style="display: none;">
+                        <p>No data available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seasonal Data Table -->
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="tableTitle">Spring Bestsellers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Dish</th>
+                                    <th>Orders</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="seasonTableBody">
+                                <tr>
+                                    <td colspan="3" class="text-center">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4 mb-5">
+    <div class="col-md-12 d-flex justify-content-center gap-2">
+        <a href="@Url.Action("SeedDemoData", "Reports")" class="btn btn-outline-success">
+            <i class="fas fa-database me-2"></i> Seed Demo Data
+        </a>
+        <a href="@Url.Action("DishPopularity", "Reports")" class="btn btn-outline-info">
+            <i class="fas fa-chart-pie me-2"></i> View Dish Popularity
+        </a>
+        <a href="@Url.Action("SalesAnalytics", "Reports")" class="btn btn-outline-info">
+            <i class="fas fa-dollar-sign me-2"></i> View Sales Analytics
+        </a>
+        <a href="#" class="btn btn-outline-danger" id="exportPdfBtn">
+            <i class="fas fa-file-pdf me-2"></i> Export to PDF
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include pdf generation libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Include PDF Export Utility -->
+    <script src="~/js/pdf-export-utility.js"></script>
+    
+    <script>
+        // Define colors
+        const colors = {
+            primary: 'rgba(13, 110, 253, 0.7)',
+            primaryBorder: 'rgba(13, 110, 253, 1)',
+            success: 'rgba(25, 135, 84, 0.7)',
+            successBorder: 'rgba(25, 135, 84, 1)',
+            warning: 'rgba(255, 193, 7, 0.7)',
+            warningBorder: 'rgba(255, 193, 7, 1)',
+            info: 'rgba(13, 202, 240, 0.7)',
+            infoBorder: 'rgba(13, 202, 240, 1)'
+        };
+        
+        // Color palettes for seasons
+        const seasonColors = {
+            Spring: {
+                background: 'rgba(76, 175, 80, 0.7)',
+                border: 'rgba(76, 175, 80, 1)',
+                icon: 'seedling'
+            },
+            Summer: {
+                background: 'rgba(255, 152, 0, 0.7)',
+                border: 'rgba(255, 152, 0, 1)',
+                icon: 'sun'
+            },
+            Autumn: {
+                background: 'rgba(121, 85, 72, 0.7)',
+                border: 'rgba(121, 85, 72, 1)',
+                icon: 'leaf'
+            },
+            Winter: {
+                background: 'rgba(33, 150, 243, 0.7)',
+                border: 'rgba(33, 150, 243, 1)',
+                icon: 'snowflake'
+            }
+        };
+        
+        // Currency formatter
+        const currencyFormatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        });
+        
+        let mainChart = null;
+        let seasonalData = null;
+        let currentSeason = 'Spring';
+        
+        // Load seasonal data
+        async function loadSeasonalData() {
+            try {
+                // Show loading state
+                document.getElementById('mainChart').style.opacity = '0.5';
+                
+                // Fetch data from the API
+                const response = await fetch('/Reports/GetSeasonalTrendsData');
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    seasonalData = data;
+                    
+                    document.getElementById('noDataMessage').style.display = 'none';
+                    document.getElementById('mainChart').style.display = 'block';
+                    document.getElementById('mainChart').style.opacity = '1';
+                    
+                    // Display the current season
+                    displaySeason(currentSeason);
+                } else {
+                    document.getElementById('noDataMessage').style.display = 'block';
+                    document.getElementById('mainChart').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading seasonal data:', error);
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('mainChart').style.display = 'none';
+            }
+        }
+        
+        // Display data for a specific season
+        function displaySeason(seasonName) {
+            if (!seasonalData) return;
+            
+            // Update current season
+            currentSeason = seasonName;
+            
+            // Find the selected season data
+            const seasonData = seasonalData.find(s => s.season === seasonName);
+            
+            // Update season card
+            document.getElementById('seasonTitle').textContent = seasonName;
+            document.getElementById('seasonIcon').innerHTML = `<i class="fas fa-${seasonColors[seasonName].icon}"></i>`;
+            
+            // Update chart title and table title
+            document.getElementById('chartTitle').textContent = `${seasonName} Bestsellers`;
+            document.getElementById('tableTitle').textContent = `${seasonName} Bestsellers`;
+            
+            if (seasonData && seasonData.dishes && seasonData.dishes.length > 0) {
+                // Update top dish
+                document.getElementById('seasonTopDish').textContent = seasonData.dishes[0].dishName;
+                
+                // Update chart and table
+                updateChart(seasonData);
+                updateDataTable(seasonData);
+            } else {
+                // No data available for this season
+                document.getElementById('seasonTopDish').textContent = '-';
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('mainChart').style.display = 'none';
+                
+                // Clear the table
+                const tableBody = document.getElementById('seasonTableBody');
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No data available for this season</td></tr>';
+            }
+        }
+        
+        // Update the main chart for a specific season
+        function updateChart(seasonData) {
+            if (!seasonData || !seasonData.dishes || seasonData.dishes.length === 0) {
+                document.getElementById('noDataMessage').style.display = 'block';
+                document.getElementById('mainChart').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('noDataMessage').style.display = 'none';
+            document.getElementById('mainChart').style.display = 'block';
+            
+            // Prepare chart data
+            const chartData = {
+                labels: seasonData.dishes.map(d => d.dishName),
+                datasets: [{
+                    label: 'Order Count',
+                    data: seasonData.dishes.map(d => d.orderCount),
+                    backgroundColor: seasonColors[seasonData.season].background,
+                    borderColor: seasonColors[seasonData.season].border,
+                    borderWidth: 1
+                }]
+            };
+            
+            // Chart options
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw || 0;
+                                return `${value} orders`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Order Count'
+                        }
+                    }
+                }
+            };
+            
+            // Create or update chart
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (mainChart) {
+                mainChart.destroy();
+            }
+            
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
+            });
+        }
+        
+        // Update data table for a specific season
+        function updateDataTable(seasonData) {
+            const tableBody = document.getElementById('seasonTableBody');
+            tableBody.innerHTML = '';
+            
+            if (seasonData.dishes && seasonData.dishes.length > 0) {
+                seasonData.dishes.forEach(dish => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${dish.dishName}</td>
+                        <td>${dish.orderCount}</td>
+                        <td>${currencyFormatter.format(dish.totalRevenue)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="3" class="text-center">No data available</td>`;
+                tableBody.appendChild(row);
+            }
+        }
+        
+        // Set up event listeners for season buttons
+        function setupSeasonButtons() {
+            const seasonButtons = document.querySelectorAll('.season-btn');
+            
+            seasonButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    seasonButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Get selected season and display it
+                    const season = this.getAttribute('data-season');
+                    displaySeason(season);
+                });
+            });
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSeasonalData();
+            setupSeasonButtons();
+            
+            // Setup PDF export functionality
+            document.getElementById('exportPdfBtn').addEventListener('click', async function() {
+                const exportBtn = document.getElementById('exportPdfBtn');
+                const originalBtnHtml = exportBtn.innerHTML;
+                
+                // Use the PDF Export Utility
+                await PdfExportUtility.generatePdf({
+                    content: document.querySelector('.container'),
+                    filename: `seasonal-trends-report-${new Date().toISOString().slice(0,10)}.pdf`,
+                    title: 'Seasonal Trends Report',
+                    orientation: 'portrait',
+                    beforeExport: function() {
+                        // Show loading indication
+                        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                        exportBtn.disabled = true;
+                    },
+                    afterExport: function() {
+                        // Restore button state
+                        exportBtn.innerHTML = originalBtnHtml;
+                        exportBtn.disabled = false;
+                    },
+                    onError: function(error) {
+                        console.error('PDF generation error:', error);
+                        exportBtn.innerHTML = originalBtnHtml;
+                        exportBtn.disabled = false;
+                        alert('Failed to generate PDF. Please try again.');
+                    }
+                });
+            });
+        });
+    </script>
+}
