@@ -63,6 +63,19 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Reservation()
+    {
+        // Pass a new TableReservation model to the view with today's date as default
+        var model = new TableReservation
+        {
+            ReservationDate = DateTime.Today,
+            NumberOfGuests = 2,
+            StartTime = new TimeSpan(18, 0, 0) // Default to 6:00 PM
+        };
+        
+        return View(model);
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -27,13 +27,25 @@ namespace FoodOrderingSystem.Controllers
         }
 
         // GET: TableReservation/Calendar
-        public async Task<IActionResult> Calendar()
+        public async Task<IActionResult> Calendar(DateTime? date = null)
         {
+            // If no date provided, use today's date
+            var referenceDate = date ?? DateTime.Today;
+            
+            // Calculate the start of the week (Sunday) for the provided/current date
+            var startOfWeek = referenceDate.AddDays(-(int)referenceDate.DayOfWeek);
+            var endOfWeek = startOfWeek.AddDays(6);
+
             var reservations = await _context.TableReservations
-                .Where(r => r.ReservationDate >= DateTime.Today)
+                .Where(r => r.ReservationDate >= startOfWeek && r.ReservationDate <= endOfWeek)
                 .OrderBy(r => r.ReservationDate)
                 .ThenBy(r => r.StartTime)
                 .ToListAsync();
+
+            ViewData["CurrentWeekStart"] = startOfWeek;
+            ViewData["CurrentWeekEnd"] = endOfWeek;
+            ViewData["PreviousWeek"] = startOfWeek.AddDays(-7);
+            ViewData["NextWeek"] = startOfWeek.AddDays(7);
 
             return View(reservations);
         }
@@ -71,9 +83,40 @@ namespace FoodOrderingSystem.Controllers
 
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Reservation created successfully!";
-                return RedirectToAction(nameof(Index));
+                
+                // Determine if this is a customer-facing reservation or admin
+                bool isCustomerFacing = HttpContext.Request.Headers["Referer"].ToString().Contains("/Home/") || 
+                                        HttpContext.Request.Headers["Referer"].ToString().Contains("/Menu/");
+                
+                if (isCustomerFacing)
+                {
+                    // For customer-facing reservations, redirect to Thank You page
+                    return RedirectToAction(nameof(ThankYou), new { id = reservation.Id });
+                }
+                else
+                {
+                    // For admin-created reservations, redirect to Index with success message
+                    TempData["SuccessMessage"] = "Reservation created successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
             }
+            return View(reservation);
+        }
+
+        // GET: TableReservation/ThankYou/5
+        public async Task<IActionResult> ThankYou(int? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var reservation = await _context.TableReservations.FindAsync(id);
+            if (reservation == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             return View(reservation);
         }
 

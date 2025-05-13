@@ -1,0 +1,203 @@
+@model FoodOrderingSystem.Models.TableReservation
+
+@{
+    ViewData["Title"] = "Book a Table";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Book a Table</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <form asp-controller="TableReservation" asp-action="Create" method="post">
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="TableNumber" class="control-label">Preferred Table</label>
+                                            <select asp-for="TableNumber" class="form-select">
+                                                @for (int i = 1; i <= 20; i++)
+                                                {
+                                                    <option value="@i">Table @i</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="TableNumber" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="NumberOfGuests" class="control-label">Number of Guests</label>
+                                            <input asp-for="NumberOfGuests" class="form-control" min="1" max="10" />
+                                            <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="ReservationDate" class="control-label">Reservation Date</label>
+                                            <input asp-for="ReservationDate" class="form-control" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                            <span asp-validation-for="ReservationDate" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="StartTime" class="control-label">Arrival Time</label>
+                                            <select asp-for="StartTime" class="form-select" id="StartTime">
+                                                <option value="11:00:00">11:00 AM</option>
+                                                <option value="12:00:00">12:00 PM</option>
+                                                <option value="13:00:00">1:00 PM</option>
+                                                <option value="18:00:00">6:00 PM</option>
+                                                <option value="19:00:00">7:00 PM</option>
+                                                <option value="20:00:00">8:00 PM</option>
+                                            </select>
+                                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="EndTime" class="control-label">Expected End Time</label>
+                                    <select asp-for="EndTime" class="form-select" id="EndTime">
+                                        <option value="13:00:00">1:00 PM</option>
+                                        <option value="14:00:00">2:00 PM</option>
+                                        <option value="15:00:00">3:00 PM</option>
+                                        <option value="20:00:00">8:00 PM</option>
+                                        <option value="21:00:00">9:00 PM</option>
+                                        <option value="22:00:00">10:00 PM</option>
+                                    </select>
+                                    <small class="text-muted">Standard reservation is for 2 hours</small>
+                                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="CustomerName" class="control-label">Your Name</label>
+                                    <input asp-for="CustomerName" class="form-control" placeholder="Full Name" />
+                                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="CustomerPhone" class="control-label">Contact Number</label>
+                                            <input asp-for="CustomerPhone" class="form-control" placeholder="(xxx) xxx-xxxx" />
+                                            <span asp-validation-for="CustomerPhone" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="CustomerEmail" class="control-label">Email Address</label>
+                                            <input asp-for="CustomerEmail" class="form-control" type="email" placeholder="email@example.com" />
+                                            <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label asp-for="SpecialRequests" class="control-label">Special Requests <span class="text-muted">(Optional)</span></label>
+                                    <textarea asp-for="SpecialRequests" class="form-control" rows="3" placeholder="Any dietary requirements, celebration details, or special accommodations"></textarea>
+                                    <span asp-validation-for="SpecialRequests" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">Confirm Reservation</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-lg-5">
+                            <div class="bg-light p-4 h-100 rounded">
+                                <h4 class="mb-4">Reservation Information</h4>
+                                
+                                <div class="mb-4">
+                                    <h5><i class="fas fa-clock me-2"></i>Hours</h5>
+                                    <p class="mb-1"><strong>Lunch:</strong> 11:00 AM - 3:00 PM</p>
+                                    <p><strong>Dinner:</strong> 6:00 PM - 10:00 PM</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h5><i class="fas fa-info-circle me-2"></i>Policies</h5>
+                                    <ul class="ps-3">
+                                        <li>Parties of 8 or more may require a deposit</li>
+                                        <li>Tables are held for 15 minutes past reservation time</li>
+                                        <li>Cancellations must be made 24 hours in advance</li>
+                                        <li>Special accommodations are based on availability</li>
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h5><i class="fas fa-phone me-2"></i>Questions?</h5>
+                                    <p>Contact us at (123) 456-7890 or <a href="mailto:reservations@restaurant.com">reservations@restaurant.com</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Set default end time (2 hours after start time) on page load
+            updateEndTime();
+            
+            // Update end time when start time changes
+            $('#StartTime').change(updateEndTime);
+            
+            function updateEndTime() {
+                var startTimeSelect = document.getElementById('StartTime');
+                var startTimeValue = startTimeSelect.value;
+                
+                if (!startTimeValue) return;
+                
+                var startTimeParts = startTimeValue.split(':');
+                var startHour = parseInt(startTimeParts[0]);
+                
+                // Calculate end time (2 hours after start time)
+                var endHour = startHour + 2;
+                var endTimeSelect = document.getElementById('EndTime');
+                
+                // Select the appropriate end time option
+                for (var i = 0; i < endTimeSelect.options.length; i++) {
+                    var option = endTimeSelect.options[i];
+                    var optionTimeParts = option.value.split(':');
+                    var optionHour = parseInt(optionTimeParts[0]);
+                    
+                    if (optionHour >= endHour) {
+                        endTimeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Form validation
+            $('form').submit(function(e) {
+                var startTime = $('#StartTime').val();
+                var endTime = $('#EndTime').val();
+                
+                if (startTime >= endTime) {
+                    alert('End time must be after start time');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                return true;
+            });
+        });
+    </script>
+} 

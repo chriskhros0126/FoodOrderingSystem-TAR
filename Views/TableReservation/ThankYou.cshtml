@@ -1,0 +1,66 @@
+@model FoodOrderingSystem.Models.TableReservation
+
+@{
+    ViewData["Title"] = "Reservation Confirmed";
+}
+
+<div class="container">
+    <div class="row justify-content-center my-5">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="fas fa-check-circle me-2"></i>Reservation Confirmed!</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-utensils fa-4x text-success mb-3"></i>
+                        <h4>Thank you for your reservation, @Model.CustomerName!</h4>
+                        <p class="text-muted">Your table has been reserved and we look forward to serving you.</p>
+                    </div>
+
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">Reservation Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Table Number:</strong> @Model.TableNumber</p>
+                                <p><strong>Date:</strong> @Model.ReservationDate.ToString("dddd, MMMM d, yyyy")</p>
+                                <p><strong>Time:</strong> @FormatTime(Model.StartTime) - @FormatTime(Model.EndTime)</p>
+                                <p><strong>Number of Guests:</strong> @Model.NumberOfGuests</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Name:</strong> @Model.CustomerName</p>
+                                <p><strong>Email:</strong> @Model.CustomerEmail</p>
+                                <p><strong>Phone:</strong> @Model.CustomerPhone</p>
+                                @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+                                {
+                                    <p><strong>Special Requests:</strong> @Model.SpecialRequests</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mb-4">
+                        A confirmation email has been sent to <strong>@Model.CustomerEmail</strong> with these details.
+                        If you need to make any changes to your reservation, please contact us.
+                    </p>
+
+                    <div class="d-flex justify-content-center">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatTime(TimeSpan time)
+    {
+        int hour = time.Hours;
+        string period = hour >= 12 ? "PM" : "AM";
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        return $"{displayHour}:{time.Minutes:00} {period}";
+    }
+} 
